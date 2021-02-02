@@ -4,8 +4,9 @@ package main
 import (
 	"fmt"
 	"os"
-	
 )
+
+
 
 //function check errors
 func check_err(e error){
@@ -13,8 +14,24 @@ func check_err(e error){
 		panic(e)
 	}
 }
+//function count the accesskey id length.valid key length is 20
+func validate_accesskey_count(accesskey string) int{
+	var result int
+	result = len(accesskey)
+	return result
+}
+//function count the secretkey id length.valid key length is 40
+func validate_secretkey_count(secretkey string) int{
+	var result int
+	result = len(secretkey)
+	return result
+}	
 func main() {
 	
+	//color code
+	colorReset := "\033[0m"
+	colorRed := "\033[31m"
+
 	//remove main.tf and variable.tf
 	os.Remove("main.tf")
 	os.Remove("variable.tf")
@@ -25,11 +42,23 @@ func main() {
 	fmt.Print("Enter AccessKey : ")
 	var accesskey string
 	fmt.Scanln(&accesskey)
+	//pass access key to validate func
+	result_accesskey := validate_accesskey_count(accesskey)
+	if result_accesskey < 20 || result_accesskey > 20 {
+		fmt.Println(string(colorRed),"\nError: Invalid Access Key", string(colorReset))
+		os.Exit(1)
+	}
 
 	//get secretkeyid
 	fmt.Print("Enter SecretKey : ")
 	var secretkey string
 	fmt.Scanln(&secretkey)
+	//pass secret key to validate func
+	result_secretkey := validate_secretkey_count(secretkey)
+	if result_secretkey < 40 || result_secretkey > 40 {
+		fmt.Println(string(colorRed),"\nError: Invalid Secret Key", string(colorReset))
+		os.Exit(1)
+	}
 
     fmt.Println("")
 	fmt.Println("Create custom VPC")
