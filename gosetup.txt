@@ -1,0 +1,13 @@
+Setup Go Development environment in ubuntu 20.04
+
+Go to the below URL and download the goXXX.linux-amd64.tar.gz
+
+https://golang.org/doc/install
+
+1 . Download the archive and extract it into /usr/local, creating a Go tree in /usr/local/go
+    
+    tar -C /usr/local -xzf go1.15.7.linux-amd64.tar.gz
+
+2. Add /usr/local/go/bin to the PATH environment variable.
+   
+   export PATH=$PATH:/usr/local/go/bin
