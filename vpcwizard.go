@@ -57,10 +57,10 @@ network traffic to your instances.`
 		"Asia Pacfic Region\n==================\n"+
 		"6) Hong Kong ap-east-1\n"+
 		"7) Mumbai ap-south-1\n"+
-		"8) Seoul ap-notrheast-2\n"+
+		"8) Seoul ap-northeast-2\n"+
 		"9) Singapore ap-southeast-1\n"+
 		"10) Sydney ap-southeast-2\n"+
-		"11) Tokyo ap-northeast-2\n\n"+
+		"11) Tokyo ap-northeast-1\n\n"+
 		"Canada Region\n=============\n"+
 		"12) Central ca-central-1\n\n"+
 		"Europe Region\n=============\n"+
@@ -84,6 +84,45 @@ network traffic to your instances.`
 		switch {
 		case vpc_region == 1:
 			selected_region = "us-east-1"
+		case vpc_region == 2:
+			selected_region = "us-east-2"
+		case vpc_region == 3:
+			selected_region = "us-west-1"
+		case vpc_region == 4:
+			selected_region = "us-west-2"
+		case vpc_region == 5:
+			selected_region = "af-south-1"
+		case vpc_region == 6:
+			selected_region = "ap-east-1"
+		case vpc_region == 7:
+			selected_region = "ap-south-1"
+		case vpc_region == 8:
+			selected_region = "ap-northeast-2"
+		case vpc_region == 9:
+			selected_region = "ap-southeast-2"
+		case vpc_region == 10:
+			selected_region = "ap-southeast-2"
+		case vpc_region == 11:
+			selected_region = "ap-northeast-1"
+		case vpc_region == 12:
+			selected_region = "ca-central-1"
+		case vpc_region == 13:
+			selected_region = "eu-central-1"
+		case vpc_region == 14:
+			selected_region = "eu-west-1"
+		case vpc_region == 15:
+			selected_region = "eu-west-2"
+		case vpc_region == 16:
+			selected_region = "eu-south-1"
+		case vpc_region == 17:
+			selected_region = "eu-west-3"
+		case vpc_region == 18:
+			selected_region = "eu-north-1"
+		case vpc_region == 19:
+			selected_region = "me-south-1"
+		case vpc_region == 20:
+			selected_region = "sa-east-1"
+		
 		}
 
 		//get custom VPC name
@@ -114,7 +153,16 @@ network traffic to your instances.`
 		fmt.Scanln(&custom_public_subnet_cidr)
 
 		//get availability zone
-		fmt.Println("\nSelect Availability Zone available in "+selected_region)
+		fmt.Println("\nSelect Availability Zone available in "+selected_region+" region\n")
+		//check for selected regions
+		var azs string
+		switch {
+		case selected_region == "us-east-1":
+			azs="1) us-east-1a\t4) us-east-1d\n"+
+			"2) us-east-1b\t5) us-east-1e\n"+
+			"3) us-east-1c\t6) us-east-1f\n"
+			fmt.Println(azs)
+		}
 		
 
 	case option == 2:

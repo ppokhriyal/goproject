@@ -4,11 +4,7 @@ package main
 import (
 	"fmt"
 	"os"
-	/*"github.com/aws/aws-sdk-go/aws"
-    "github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/service/iam"*/
-	
+
 )
 
 
@@ -64,15 +60,6 @@ func main() {
 		fmt.Println(string(colorRed),"\nError: Invalid Secret Key", string(colorReset))
 		os.Exit(1)
 	}
-
-	/*sess, err := session.NewSession(&aws.Config{Region:aws.String("us-east-1"),Credentials: credentials.NewStaticCredentials(accesskey,secretkey,"TOKEN")})
-	// Create a IAM service client.
-	svc := iam.New(sess)
-	fmt.Println(svc)
-	if err != nil {
-		fmt.Println("Error", err)
-		return
-	}*/
 
     fmt.Println("")
 	fmt.Println("Create custom VPC")
