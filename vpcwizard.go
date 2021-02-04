@@ -8,7 +8,9 @@ import(
 	"fmt"
 	"os"
 	"os/exec"
+	"time"
 )
+
 //clear screen
 func clear_screen(){
 	cmd := exec.Command("clear")
@@ -27,7 +29,13 @@ func validate_secretkey_count(secretkey string) int{
 	var result int
 	result = len(secretkey)
 	return result
-}	
+}
+//function check errors
+func check_err(e error){
+	if e !=nil {
+		panic(e)
+	}
+}
 
 //single public subnet
 func vpc_single_public_subnet(){
@@ -317,6 +325,37 @@ network traffic to your instances.`
 			fmt.Println(string(colorRed),"\nError: Invalid Secret Key", string(colorReset))
 			os.Exit(1)
 		}
+		//create-write variable.tf and main.tf
+		file_variable_tf,err1 := os.Create("variable.tf")
+		check_err(err1)
+		defer file_variable_tf.Close()
+
+		main_tf,err2 := os.Create("main.tf")
+		check_err(err2)
+		defer main_tf.Close()
+
+		//write variable.tf file
+		variabletf :="#accesskeyid\n"+
+		"variable \"accesskey\" {\n default = \""+accesskey+"\"\n}\n"+
+		"#secrectaccesskey\n"+
+		"variable \"secretkey\" {\n default = \""+secretkey+"\"\n}\n"+
+		"#region\n"+
+		"variable \"region\" {\n default = \""+selected_region+"\"\n}\n"+
+		"#custom vpc cidr block\n"+
+		"variable \"custom_vpc_cidr\" {\n default = \""+custom_vpc_cidr+"\"\n}\n"+
+		"#availability zone\n"+
+		"variable \"azs\" {\n default = \""+azselected+"\"\n}\n"+
+		"#public subnet cidr block\n"+
+		"variable \"publicsubnetcidr\" {\n default = \""+custom_public_subnet_cidr+"\"\n}\n"
+
+		_,variablerr := file_variable_tf.WriteString(variabletf)
+		check_err(variablerr)
+
+		//prepare terraform configuration file
+		fmt.Println("\nPlease wait preparing your Terraform Configuration ...")
+		time.Sleep(5 * time.Second)
+		fmt.Println("\nTerraform Configuration main.tf and variable.tf is ready.")
+		
 	case reviewoption == 2:
 		clear_screen()
 		main()
@@ -332,6 +371,9 @@ func main(){
 	//color code
 	colorReset := "\033[0m"
 	colorRed := "\033[31m"
+	//remove main.tf and variable.tf
+	os.Remove("main.tf")
+	os.Remove("variable.tf")
 
 	//vpc configuration wizard
 	fmt.Println("--------------------------")
