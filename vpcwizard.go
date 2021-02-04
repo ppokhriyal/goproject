@@ -15,13 +15,34 @@ func clear_screen(){
 	cmd.Stdout = os.Stdout
 	cmd.Run()
 }
+//function count the accesskey id length.valid key length is 20
+func validate_accesskey_count(accesskey string) int{
+	var result int
+	result = len(accesskey)
+	return result
+}
+
+//function count the secretkey id length.valid key length is 40
+func validate_secretkey_count(secretkey string) int{
+	var result int
+	result = len(secretkey)
+	return result
+}	
+
 //single public subnet
 func vpc_single_public_subnet(){
 	
 	//color code
 	colorReset := "\033[0m"
 	colorRed := "\033[31m"
+	colorBackground := "\033[100m"
 	var azselected string
+	var custom_vpc string
+	var vpc_region int
+	var selected_region string
+	var custom_vpc_cidr string
+	var custom_public_subnet string
+	var custom_public_subnet_cidr string
 
 	fmt.Println("--------------------------")
 	fmt.Println("VPC CLI Management Console")
@@ -79,9 +100,9 @@ network traffic to your instances.`
 		fmt.Println(select_region)
 
 		fmt.Print("Enter an option : ")
-		var vpc_region int
 		fmt.Scanln(&vpc_region)
-		var selected_region string
+		
+
 		switch {
 		case vpc_region == 1:
 			selected_region = "us-east-1"
@@ -135,22 +156,22 @@ network traffic to your instances.`
 		fmt.Println("=============================")
 		
 		fmt.Print("VPC name : ")
-		var custom_vpc string
+		
 		fmt.Scanln(&custom_vpc)
 
 		//get custom VPC CIDR block
 		fmt.Print("IPv4 CIDR block (e.g 10.0.0.0/16) : ")
-		var custom_vpc_cidr string
+		
 		fmt.Scanln(&custom_vpc_cidr)
 
 		//get public subnet name
 		fmt.Print("\nPublic Subnet name : ")
-		var custom_public_subnet string
+		
 		fmt.Scanln(&custom_public_subnet)
 
 		//get public subnet cidr
 		fmt.Print("Public subnet's IPv4 CIDR (e.g 10.0.0.0/24) : ")
-		var custom_public_subnet_cidr string
+		
 		fmt.Scanln(&custom_public_subnet_cidr)
 
 		//get availability zone
@@ -249,7 +270,62 @@ network traffic to your instances.`
 	case option != 1 || option != 2 || option != 0:
 		fmt.Println(string(colorRed),"\nError: Invalid option",string(colorReset))
 	}
-	fmt.Println(azselected)
+
+	//review vpc configuration
+	clear_screen()
+	fmt.Println("--------------------------")
+	fmt.Println("VPC CLI Management Console")
+	fmt.Println("--------------------------")
+	fmt.Println("VPC with Single Public Subnet")
+	fmt.Println("=============================")
+	fmt.Println("Review your VPC configuration\n")
+	
+	fmt.Println(string(colorBackground),"VPC : "+custom_vpc,string(colorReset))
+	fmt.Println(string(colorBackground),"Region : "+selected_region,string(colorReset))
+	fmt.Println(string(colorBackground),"Availability Zone : "+azselected,string(colorReset))
+	fmt.Println(string(colorBackground),"IPv4 CIDR block : "+custom_vpc_cidr,string(colorReset))
+	fmt.Println(string(colorBackground),"Public Subnet : "+custom_public_subnet,string(colorReset))
+	fmt.Println(string(colorBackground),"Public Subnet CIDR block : "+custom_public_subnet_cidr,string(colorReset))
+	fmt.Println("\n")
+	var reviewoption int
+	fmt.Println("[ 1 ] Continue")
+	fmt.Println("[ 2 ] Go back to main menu")
+	fmt.Println("[ 0 ] Exit\n")
+	fmt.Print("Enter an option : ")
+	fmt.Scanln(&reviewoption)
+	switch {
+	case reviewoption == 1:
+		//get access key
+		fmt.Println("\nAuthentication")
+		fmt.Println("==============")
+		fmt.Print("Enter AccessKey : ")
+		var accesskey string
+		fmt.Scanln(&accesskey)
+		//pass access key to validate func
+		result_accesskey := validate_accesskey_count(accesskey)
+		if result_accesskey < 20 || result_accesskey > 20 {
+			fmt.Println(string(colorRed),"\nError: Invalid Access Key", string(colorReset))
+			os.Exit(1)
+		}
+		//get secretkeyid
+		fmt.Print("Enter SecretKey : ")
+		var secretkey string
+		fmt.Scanln(&secretkey)
+		//pass secret key to validate func
+		result_secretkey := validate_secretkey_count(secretkey)
+		if result_secretkey < 40 || result_secretkey > 40 {
+			fmt.Println(string(colorRed),"\nError: Invalid Secret Key", string(colorReset))
+			os.Exit(1)
+		}
+	case reviewoption == 2:
+		clear_screen()
+		main()
+	case reviewoption == 0:
+		os.Exit(0)	
+	case reviewoption != 1 || reviewoption != 2 || reviewoption != 0 :
+		fmt.Println(string(colorRed),"\nError: Invalid option",string(colorReset))
+		os.Exit(0)	
+	}
 }
 func main(){
 
