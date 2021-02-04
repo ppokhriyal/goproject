@@ -21,6 +21,7 @@ func vpc_single_public_subnet(){
 	//color code
 	colorReset := "\033[0m"
 	colorRed := "\033[31m"
+	var azselected string
 
 	fmt.Println("--------------------------")
 	fmt.Println("VPC CLI Management Console")
@@ -49,30 +50,30 @@ network traffic to your instances.`
 		fmt.Println("=============================")
 		//select region
 		fmt.Println("\nSelect Region\n")
-		select_region := "US Region\n========= \n1) US East (N. Virginia) us-east-1\n"+
+		select_region := "US Region\n********* \n1) US East (N. Virginia) us-east-1\n"+
 		"2) US East (Ohio) us-east-2\n"+
 		"3) US West (N. California) us-west-1\n"+
 		"4) US West (Oregon) us-west-2\n\n"+
-		"Africa Region\n=============\n"+"5) Cape Town af-south-1\n\n"+
-		"Asia Pacfic Region\n==================\n"+
+		"Africa Region\n*************\n"+"5) Cape Town af-south-1\n\n"+
+		"Asia Pacfic Region\n******************\n"+
 		"6) Hong Kong ap-east-1\n"+
 		"7) Mumbai ap-south-1\n"+
 		"8) Seoul ap-northeast-2\n"+
 		"9) Singapore ap-southeast-1\n"+
 		"10) Sydney ap-southeast-2\n"+
 		"11) Tokyo ap-northeast-1\n\n"+
-		"Canada Region\n=============\n"+
+		"Canada Region\n*************\n"+
 		"12) Central ca-central-1\n\n"+
-		"Europe Region\n=============\n"+
+		"Europe Region\n*************\n"+
 		"13) Frankfurt eu-central-1\n"+
 		"14) Ireland eu-west-1\n"+
 		"15) London eu-west-2\n"+
 		"16) Milan eu-south-1\n"+
 		"17) Paris eu-west-3\n"+
 		"18) Stockholm eu-north-1\n\n"+
-		"Middle East\n===========\n"+
+		"Middle East\n***********\n"+
 		"19) Bahrain me-south-1\n\n"+
-		"South America Region\n====================\n"+
+		"South America Region\n********************\n"+
 		"20) Sao Paulo sa-east-1\n\n"
 
 		fmt.Println(select_region)
@@ -154,17 +155,91 @@ network traffic to your instances.`
 
 		//get availability zone
 		fmt.Println("\nSelect Availability Zone available in "+selected_region+" region\n")
+		
 		//check for selected regions
 		var azs string
+
 		switch {
+
 		case selected_region == "us-east-1":
 			azs="1) us-east-1a\t4) us-east-1d\n"+
 			"2) us-east-1b\t5) us-east-1e\n"+
 			"3) us-east-1c\t6) us-east-1f\n"
 			fmt.Println(azs)
+			var azoption int
+			fmt.Print("Enter an option : ")
+			fmt.Scanln(&azoption)
+			switch {
+			case azoption == 1:
+				azselected = "us-east-1a"
+			case azoption == 2:
+				azselected = "us-east-1b"
+			case azoption == 3:
+				azselected = "us-east-1c"
+			case azoption == 4:
+				azselected = "us-east-1d"
+			case azoption == 5:
+				azselected = "us-east-1e"
+			case azoption == 6:
+				azselected = "us-east-1f"
+			case azoption != 1 || azoption != 2 || azoption != 3 || azoption != 4 || azoption != 5 || azoption != 6	:
+				fmt.Println(string(colorRed),"\nError: Invalid option",string(colorReset))
+			}
+		case selected_region == "us-east-2":
+			azs="1) us-east-2a\n"+
+			"2) us-east-2b\n"+
+			"3) us-east-2c\n"
+			fmt.Println(azs)
+			var azoption int
+			fmt.Print("Enter an option : ")
+			fmt.Scanln(&azoption)
+			switch {
+			case azoption == 1:
+				azselected = "us-east-2a"
+			case azoption == 2:
+				azselected = "us-east-2b"
+			case azoption == 3:
+				azselected = "us-east-2c"
+			case azoption != 1 || azoption != 2 || azoption != 3 :
+				fmt.Println(string(colorRed),"\nError: Invalid option",string(colorReset))	
+			}
+		case selected_region == "us-west-1":
+			azs="1) us-west-1a\n"+
+			"2) us-west-1c"
+			fmt.Println(azs)
+			var azoption int
+			fmt.Print("Enter an option : ")
+			fmt.Scanln(&azoption)
+			switch{
+			case azoption == 1:
+				azselected = "us-west-1a"
+			case azoption == 2:
+				azselected = "us-east-1c"
+			case azoption != 1 || azoption != 2 :
+				fmt.Println(string(colorRed),"\nError: Invalid option",string(colorReset))
+			}
+		case selected_region == "us-west-2":
+			azs="1) us-west-2a\n"+
+			"2) us-west-2b\n"+
+			"3) us-west-2c\n"+
+			"4) us-west-2d\n"
+			fmt.Println(azs)
+			var azoption int
+			fmt.Print("Enter an option : ")
+			fmt.Scanln(&azoption)
+			switch{
+			case azoption == 1:
+				azselected = "us-west-2a"
+			case azoption == 2:
+				azselected = "us-west-2b"
+			case azoption == 3:
+				azselected = "us-west-2c"
+			case azoption == 4:
+				azselected = "us-west-2d"
+			case azoption != 1 || azoption != 2 || azoption != 3 || azoption != 4 :
+				fmt.Println(string(colorRed),"\nError: Invalid option",string(colorReset))	
+			}
 		}
-		
-
 	case option == 2:
 		clear_screen()
 		main()
@@ -174,6 +249,7 @@ network traffic to your instances.`
 	case option != 1 || option != 2 || option != 0:
 		fmt.Println(string(colorRed),"\nError: Invalid option",string(colorReset))
 	}
+	fmt.Println(azselected)
 }
 func main(){
 
