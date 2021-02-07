@@ -51,6 +51,10 @@ func vpc_single_public_subnet(){
 	var custom_vpc_cidr string
 	var custom_public_subnet string
 	var custom_public_subnet_cidr string
+	var ec2_name string
+	var ec2_ami string
+	var ec2_type string
+
 
 	fmt.Println("--------------------------")
 	fmt.Println("VPC CLI Management Console")
@@ -278,6 +282,14 @@ network traffic to your instances.`
 	case option != 1 || option != 2 || option != 0:
 		fmt.Println(string(colorRed),"\nError: Invalid option",string(colorReset))
 	}
+	//build ec2 instance
+	fmt.Print("Enter EC2 instance name : ")
+	fmt.Scanln(&ec2_name)
+	fmt.Print("Enter ami : ")
+	fmt.Scanln(&ec2_ami)
+	fmt.Print("Enter instance type : ")
+	fmt.Scanln(&ec2_type)
+
 
 	//review vpc configuration
 	clear_screen()
@@ -294,6 +306,9 @@ network traffic to your instances.`
 	fmt.Println(string(colorBackground),"IPv4 CIDR block : "+custom_vpc_cidr,string(colorReset))
 	fmt.Println(string(colorBackground),"Public Subnet : "+custom_public_subnet,string(colorReset))
 	fmt.Println(string(colorBackground),"Public Subnet CIDR block : "+custom_public_subnet_cidr,string(colorReset))
+	fmt.Println(string(colorBackground),"Ec2 Instance  : "+ec2_name,string(colorReset))
+	fmt.Println(string(colorBackground),"Ec2 Instance ami : "+ec2_ami,string(colorReset))
+	fmt.Println(string(colorBackground),"Ec2 Instace type  : "+ec2_type,string(colorReset))
 	fmt.Println("\n")
 	var reviewoption int
 	fmt.Println("[ 1 ] Continue")
@@ -359,15 +374,47 @@ network traffic to your instances.`
 		" cidr_block = var.custom_vpc_cidr\n"+
 		" enable_dns_support = true\n"+
 		" enable_dns_hostnames = true\n"+
-		" tags = {\n \"Name\" = \""+custom_vpc+"\"\n}\n}\n"
+		" tags = {\n \"Name\" = \""+custom_vpc+"\"\n}\n}\n"+
+		"#create public subnet\n"+
+		"resource \"aws_subnet\" \""+custom_public_subnet+"\" {\n"+
+		" vpc_id = aws_vpc.custom_public_vpc.id\n"+
+		" cidr_block = var.custom_vpc_cidr\n"+
+		" availability_zone = var.azs\n"+
+		" tags = {\n \"Name\" = \""+custom_public_subnet+"\"\n}\n}\n"+
+		"#create custom internet gateway\n"+
+		"resource \"aws_internet_gateway\" \"customigw\" {\n"+
+		" vpc_id = aws_vpc.custom_public_vpc.id\n"+
+		" tags = {\n\"Name\" = \"customigw\"\n}\n}\n"+
+		"#create public route table\n"+
+		"resource \"aws_route_table\" \"publicroute\" {\n"+
+		" vpc_id = aws_vpc.custom_public_vpc.id\n"+
+		" route {\n cidr_block = \"0.0.0.0/0\" \n gateway_id = aws_internet_gateway.customigw.id\n }\n tags = {\n \"Name\" = \"publicroute\"\n}\n}\n"+
+		"#associate public subnet to public route\n"+
+		"resource \"aws_route_table_association\" \"publicsubacc\" {\n"+
+		" subnet_id = aws_subnet."+custom_public_subnet+".id\n"+
+		" route_table_id = aws_route_table.publicroute.id \n}\n"+
+		"#create custom ec2 instance\n"+
+		"resource \"aws_instance\" \""+ec2_name+"\" {\n"+
+		" ami = \""+ec2_ami+"\"\n"+
+		" instance_type = \""+ec2_type+"\"\n"+
+		" availability_zone = \"var.azs\"\n"+
+		" subnet_id = aws_subnet."+custom_public_subnet+".id\n"+
+		" associate_public_ip_address = true\n"+
+		" tags = {\n \"Name\" = \""+ec2_name+"\"\n}\n}\n"
+
 
 		_,maintferr := main_tf.WriteString(maintf)
 		check_err(maintferr)
 
 		//prepare terraform configuration file
-		fmt.Println("\nPlease wait preparing your Terraform Configuration ...")
-		time.Sleep(5 * time.Second)
+		fmt.Println("\nPreparing your Terraform Configuration ...")
+		time.Sleep(3 * time.Second)
 		fmt.Println("\nTerraform Configuration main.tf and variable.tf is ready.")
+		fmt.Println("\nValidating main.tf and variable.tf ....")
+
+		out,err := exec.Command("terraform","validate").Output()
+		check_err(err)
+		fmt.Println(out)
 		
 		
 	case reviewoption == 2:
