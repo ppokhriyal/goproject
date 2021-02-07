@@ -351,10 +351,24 @@ network traffic to your instances.`
 		_,variablerr := file_variable_tf.WriteString(variabletf)
 		check_err(variablerr)
 
+		//write main.tf
+		maintf := "#configure AWS provider\n"+
+		"provider \"aws\" {\n region = var.region\n access_key = var.accesskey\n secret_key = var.secretkey\n}\n"+
+		"#create custom public vpc\n"+
+		"resource \"aws_vpc\" \"custom_public_vpc\" {\n"+
+		" cidr_block = var.custom_vpc_cidr\n"+
+		" enable_dns_support = true\n"+
+		" enable_dns_hostnames = true\n"+
+		" tags = {\n \"Name\" = \""+custom_vpc+"\"\n}\n}\n"
+
+		_,maintferr := main_tf.WriteString(maintf)
+		check_err(maintferr)
+
 		//prepare terraform configuration file
 		fmt.Println("\nPlease wait preparing your Terraform Configuration ...")
 		time.Sleep(5 * time.Second)
 		fmt.Println("\nTerraform Configuration main.tf and variable.tf is ready.")
+		
 		
 	case reviewoption == 2:
 		clear_screen()
