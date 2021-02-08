@@ -283,7 +283,7 @@ network traffic to your instances.`
 		fmt.Println(string(colorRed),"\nError: Invalid option",string(colorReset))
 	}
 	//build ec2 instance
-	fmt.Print("Enter EC2 instance name : ")
+	fmt.Print("\nEnter EC2 instance name : ")
 	fmt.Scanln(&ec2_name)
 	fmt.Print("Enter ami : ")
 	fmt.Scanln(&ec2_ami)
@@ -397,7 +397,7 @@ network traffic to your instances.`
 		"resource \"aws_instance\" \""+ec2_name+"\" {\n"+
 		" ami = \""+ec2_ami+"\"\n"+
 		" instance_type = \""+ec2_type+"\"\n"+
-		" availability_zone = \"var.azs\"\n"+
+		" availability_zone = var.azs\n"+
 		" subnet_id = aws_subnet."+custom_public_subnet+".id\n"+
 		" associate_public_ip_address = true\n"+
 		" tags = {\n \"Name\" = \""+ec2_name+"\"\n}\n}\n"
@@ -410,11 +410,6 @@ network traffic to your instances.`
 		fmt.Println("\nPreparing your Terraform Configuration ...")
 		time.Sleep(3 * time.Second)
 		fmt.Println("\nTerraform Configuration main.tf and variable.tf is ready.")
-		fmt.Println("\nValidating main.tf and variable.tf ....")
-
-		out,err := exec.Command("terraform","validate").Output()
-		check_err(err)
-		fmt.Println(out)
 		
 		
 	case reviewoption == 2:
