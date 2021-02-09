@@ -54,7 +54,10 @@ func vpc_single_public_subnet(){
 	var ec2_name string
 	var ec2_ami string
 	var ec2_type string
-
+	var inboundsgs string
+	var inboundoption int
+	var sgstring string
+	var sgname string
 
 	fmt.Println("--------------------------")
 	fmt.Println("VPC CLI Management Console")
@@ -86,28 +89,28 @@ network traffic to your instances.`
 		select_region := "US Region\n********* \n1) US East (N. Virginia) us-east-1\n"+
 		"2) US East (Ohio) us-east-2\n"+
 		"3) US West (N. California) us-west-1\n"+
-		"4) US West (Oregon) us-west-2\n\n"+
-		"Africa Region\n*************\n"+"5) Cape Town af-south-1\n\n"+
-		"Asia Pacfic Region\n******************\n"+
-		"6) Hong Kong ap-east-1\n"+
-		"7) Mumbai ap-south-1\n"+
-		"8) Seoul ap-northeast-2\n"+
-		"9) Singapore ap-southeast-1\n"+
-		"10) Sydney ap-southeast-2\n"+
-		"11) Tokyo ap-northeast-1\n\n"+
-		"Canada Region\n*************\n"+
-		"12) Central ca-central-1\n\n"+
-		"Europe Region\n*************\n"+
-		"13) Frankfurt eu-central-1\n"+
-		"14) Ireland eu-west-1\n"+
-		"15) London eu-west-2\n"+
-		"16) Milan eu-south-1\n"+
-		"17) Paris eu-west-3\n"+
-		"18) Stockholm eu-north-1\n\n"+
-		"Middle East\n***********\n"+
-		"19) Bahrain me-south-1\n\n"+
-		"South America Region\n********************\n"+
-		"20) Sao Paulo sa-east-1\n\n"
+		"4) US West (Oregon) us-west-2\n\n"
+		// "Africa Region\n*************\n"+"5) Cape Town af-south-1\n\n"+
+		// "Asia Pacfic Region\n******************\n"+
+		// "6) Hong Kong ap-east-1\n"+
+		// "7) Mumbai ap-south-1\n"+
+		// "8) Seoul ap-northeast-2\n"+
+		// "9) Singapore ap-southeast-1\n"+
+		// "10) Sydney ap-southeast-2\n"+
+		// "11) Tokyo ap-northeast-1\n\n"+
+		// "Canada Region\n*************\n"+
+		// "12) Central ca-central-1\n\n"+
+		// "Europe Region\n*************\n"+
+		// "13) Frankfurt eu-central-1\n"+
+		// "14) Ireland eu-west-1\n"+
+		// "15) London eu-west-2\n"+
+		// "16) Milan eu-south-1\n"+
+		// "17) Paris eu-west-3\n"+
+		// "18) Stockholm eu-north-1\n\n"+
+		// "Middle East\n***********\n"+
+		// "19) Bahrain me-south-1\n\n"+
+		// "South America Region\n********************\n"+
+		// "20) Sao Paulo sa-east-1\n\n"
 
 		fmt.Println(select_region)
 
@@ -282,6 +285,151 @@ network traffic to your instances.`
 	case option != 1 || option != 2 || option != 0:
 		fmt.Println(string(colorRed),"\nError: Invalid option",string(colorReset))
 	}
+	//security group
+	fmt.Println("\nSelect Inbound Security Groups")
+	inboundsgs="1) SSH \n2) HTTP\n3) HTTPS\n4) Above All\n5) SSH/HTTP\n6) SSH/HTTPS\n7) HTTP/HTTPS\n8) Default\n"
+	fmt.Println(inboundsgs)
+	fmt.Print("\nEnter option : ")
+	fmt.Scanln(&inboundoption)
+
+	switch {
+	case inboundoption == 1:
+		sgstring="resource \"aws_security_group\" \"ssh_securitygroup\" {\n"+
+				 " name = \"ssh_securitygroup\"\n"+
+				 " description = \"allow ssh\"\n"+
+				 " vpc_id = aws_vpc.custom_public_vpc.id\n"+
+				 " ingress {\n"+
+				 "   description = \"allow ssh\"\n"+
+				 "   from_port = 22\n"+
+				 "   to_port = 22\n"+
+				 "   protocol = \"tcp\"\n"+
+				 "   cidr_blocks = [\"0.0.0.0/0\"]\n}\n"+
+				 " tags = {\n"+
+				 " 	\"Name\" = \"ssh_securitygroup\"\n}\n}\n"
+		sgname = "aws_security_group.ssh_securitygroup.id"
+
+	case inboundoption == 2:
+		sgstring="resource \"aws_security_group\" \"http_securitygroup\" {\n"+
+				 " name = \"http_securitygroup\"\n"+
+				 " description = \"allow http\"\n"+
+				 " vpc_id = aws_vpc.custom_public_vpc.id\n"+
+				 " ingress {\n"+
+				 "   description = \"allow http\"\n"+
+				 "   from_port = 80\n"+
+				 "   to_port = 80\n"+
+				 "   protocol = \"tcp\"\n"+
+				 "   cidr_blocks = [\"0.0.0.0/0\"]\n}\n"+
+				 " tags = {\n"+
+				 " 	\"Name\" = \"http_securitygroup\"\n}\n}\n"
+		sgname = "aws_security_group.http_securitygroup.id"
+
+	case inboundoption == 3:
+		sgstring="resource \"aws_security_group\" \"https_securitygroup\" {\n"+
+				 " name = \"https_securitygroup\"\n"+
+				 " description = \"allow https\"\n"+
+				 " vpc_id = aws_vpc.custom_public_vpc.id\n"+
+				 " ingress {\n"+
+				 "   description = \"allow https\"\n"+
+				 "   from_port = 443\n"+
+				 "   to_port = 443\n"+
+				 "   protocol = \"tcp\"\n"+
+				 "   cidr_blocks = [\"0.0.0.0/0\"]\n}\n"+
+				 " tags = {\n"+
+				 " 	\"Name\" = \"https_securitygroup\"\n}\n}\n"
+		sgname = "aws_security_group.https_securitygroup.id"
+
+	case inboundoption == 4:
+		sgstring="resource \"aws_security_group\" \"sshttphttps_securitygroup\" {\n"+
+				 " name = \"sshttphttps_securitygroup\"\n"+
+				 " description = \"allow ssh http and https\"\n"+
+				 " vpc_id = aws_vpc.custom_public_vpc.id\n"+
+				 " ingress {\n"+
+				 "   description = \"allow ssh\"\n"+
+				 "   from_port = 22\n"+
+				 "   to_port = 22\n"+
+				 "   protocol = \"tcp\"\n"+
+				 "   cidr_blocks = [\"0.0.0.0/0\"]\n}\n"+
+				 " ingress {\n"+
+				 "   description = \"allow http\"\n"+
+				 "   from_port = 80\n"+
+				 "   to_port = 80\n"+
+				 "   protocol = \"tcp\"\n"+
+				 "   cidr_blocks = [\"0.0.0.0/0\"]\n}\n"+
+				 " ingress {\n"+
+				 "   description = \"allow https\"\n"+
+				 "   from_port = 443\n"+
+				 "   to_port = 443\n"+
+				 "   protocol = \"tcp\"\n"+
+				 "   cidr_blocks = [\"0.0.0.0/0\"]\n}\n"+
+				 " tags = {\n"+
+				 " 	\"Name\" = \"sshttphttps_securitygroup\"\n}\n}\n"
+		sgname = "aws_security_group.sshttphttps_securitygroup.id"
+
+	case inboundoption == 5:
+		sgstring="resource \"aws_security_group\" \"sshttp_securitygroup\" {\n"+
+				 " name = \"sshttp_securitygroup\"\n"+
+				 " description = \"allow ssh and http\"\n"+
+				 " vpc_id = aws_vpc.custom_public_vpc.id\n"+
+				 " ingress {\n"+
+				 "   description = \"allow ssh and http\"\n"+
+				 "   from_port = 22\n"+
+				 "   to_port = 22\n"+
+				 "   protocol = \"tcp\"\n"+
+				 "   cidr_blocks = [\"0.0.0.0/0\"]\n}\n"+
+				 " ingress {\n"+
+				 "   description = \"allow http\"\n"+
+				 "   from_port = 80\n"+
+				 "   to_port = 80\n"+
+				 "   protocol = \"tcp\"\n"+
+				 "   cidr_blocks = [\"0.0.0.0/0\"]\n}\n"+
+				 " tags = {\n"+
+				 " 	\"Name\" = \"sshttp_securitygroup\"\n}\n}\n"
+		sgname = "aws_security_group.sshttp_securitygroup.id"
+
+	case inboundoption == 6:
+		sgstring="resource \"aws_security_group\" \"sshttps_securitygroup\" {\n"+
+				 " name = \"sshttps_securitygroup\"\n"+
+				 " description = \"allow ssh and https\"\n"+
+				 " vpc_id = aws_vpc.custom_public_vpc.id\n"+
+				 " ingress {\n"+
+				 "   description = \"allow ssh\"\n"+
+				 "   from_port = 22\n"+
+				 "   to_port = 22\n"+
+				 "   protocol = \"tcp\"\n"+
+				 "   cidr_blocks = [\"0.0.0.0/0\"]\n}\n"+
+				 " ingress {\n"+
+				 "   description = \"allow https\"\n"+
+				 "   from_port = 443\n"+
+				 "   to_port = 443\n"+
+				 "   protocol = \"tcp\"\n"+
+				 "   cidr_blocks = [\"0.0.0.0/0\"]\n}\n"+
+				 " tags = {\n"+
+				 " 	\"Name\" = \"sshttps_securitygroup\"\n}\n}\n"
+		sgname = "aws_security_group.sshttps_securitygroup.id"
+
+	case inboundoption == 7:
+		sgstring="resource \"aws_security_group\" \"httphttps_securitygroup\" {\n"+
+				 " name = \"httphttps_securitygroup\"\n"+
+				 " description = \"allow http and https\"\n"+
+				 " vpc_id = aws_vpc.custom_public_vpc.id\n"+
+				 " ingress {\n"+
+				 "   description = \"allow http\"\n"+
+				 "   from_port = 80\n"+
+				 "   to_port = 80\n"+
+				 "   protocol = \"tcp\"\n"+
+				 "   cidr_blocks = [\"0.0.0.0/0\"]\n}\n"+
+				 " ingress {\n"+
+				 "   description = \"allow https\"\n"+
+				 "   from_port = 443\n"+
+				 "   to_port = 443\n"+
+				 "   protocol = \"tcp\"\n"+
+				 "   cidr_blocks = [\"0.0.0.0/0\"]\n}\n"+
+				 " tags = {\n"+
+				 " 	\"Name\" = \"httphttps_securitygroup\"\n}\n}\n"
+
+		sgname = "aws_security_group.httphttps_securitygroup.id"
+	}
+
 	//build ec2 instance
 	fmt.Print("\nEnter EC2 instance name : ")
 	fmt.Scanln(&ec2_name)
@@ -393,11 +541,13 @@ network traffic to your instances.`
 		"resource \"aws_route_table_association\" \"publicsubacc\" {\n"+
 		" subnet_id = aws_subnet."+custom_public_subnet+".id\n"+
 		" route_table_id = aws_route_table.publicroute.id \n}\n"+
+		"#create custom security group\n "+sgstring+
 		"#create custom ec2 instance\n"+
 		"resource \"aws_instance\" \""+ec2_name+"\" {\n"+
 		" ami = \""+ec2_ami+"\"\n"+
 		" instance_type = \""+ec2_type+"\"\n"+
 		" availability_zone = var.azs\n"+
+		" security_groups = ["+sgname+"]\n"+
 		" subnet_id = aws_subnet."+custom_public_subnet+".id\n"+
 		" associate_public_ip_address = true\n"+
 		" tags = {\n \"Name\" = \""+ec2_name+"\"\n}\n}\n"
