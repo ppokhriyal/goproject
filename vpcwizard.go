@@ -9,6 +9,7 @@ import(
 	"os"
 	"os/exec"
 	"time"
+	"github.com/olekukonko/tablewriter"
 )
 
 //clear screen
@@ -39,11 +40,12 @@ func check_err(e error){
 
 //single public subnet
 func vpc_single_public_subnet(){
-	
+
 	//color code
 	colorReset := "\033[0m"
 	colorRed := "\033[31m"
-	colorBackground := "\033[100m"
+	
+
 	var azselected string
 	var custom_vpc string
 	var vpc_region int
@@ -58,6 +60,7 @@ func vpc_single_public_subnet(){
 	var inboundoption int
 	var sgstring string
 	var sgname string
+	var sgoption string
 
 	fmt.Println("--------------------------")
 	fmt.Println("VPC CLI Management Console")
@@ -286,7 +289,7 @@ network traffic to your instances.`
 		fmt.Println(string(colorRed),"\nError: Invalid option",string(colorReset))
 	}
 	//security group
-	fmt.Println("\nSelect Inbound Security Groups")
+	fmt.Println("\nSelect Inbound Firewall Policy")
 	inboundsgs="1) SSH \n2) HTTP\n3) HTTPS\n4) Above All\n5) SSH/HTTP\n6) SSH/HTTPS\n7) HTTP/HTTPS\n8) Default\n"
 	fmt.Println(inboundsgs)
 	fmt.Print("\nEnter option : ")
@@ -307,6 +310,7 @@ network traffic to your instances.`
 				 " tags = {\n"+
 				 " 	\"Name\" = \"ssh_securitygroup\"\n}\n}\n"
 		sgname = "aws_security_group.ssh_securitygroup.id"
+		sgoption = "SSH"
 
 	case inboundoption == 2:
 		sgstring="resource \"aws_security_group\" \"http_securitygroup\" {\n"+
@@ -322,6 +326,7 @@ network traffic to your instances.`
 				 " tags = {\n"+
 				 " 	\"Name\" = \"http_securitygroup\"\n}\n}\n"
 		sgname = "aws_security_group.http_securitygroup.id"
+		sgoption = "HTTP"
 
 	case inboundoption == 3:
 		sgstring="resource \"aws_security_group\" \"https_securitygroup\" {\n"+
@@ -337,6 +342,7 @@ network traffic to your instances.`
 				 " tags = {\n"+
 				 " 	\"Name\" = \"https_securitygroup\"\n}\n}\n"
 		sgname = "aws_security_group.https_securitygroup.id"
+		sgoption = "HTTPS"
 
 	case inboundoption == 4:
 		sgstring="resource \"aws_security_group\" \"sshttphttps_securitygroup\" {\n"+
@@ -364,6 +370,7 @@ network traffic to your instances.`
 				 " tags = {\n"+
 				 " 	\"Name\" = \"sshttphttps_securitygroup\"\n}\n}\n"
 		sgname = "aws_security_group.sshttphttps_securitygroup.id"
+		sgoption = "SSH/HTTP/HTTPS"
 
 	case inboundoption == 5:
 		sgstring="resource \"aws_security_group\" \"sshttp_securitygroup\" {\n"+
@@ -385,6 +392,7 @@ network traffic to your instances.`
 				 " tags = {\n"+
 				 " 	\"Name\" = \"sshttp_securitygroup\"\n}\n}\n"
 		sgname = "aws_security_group.sshttp_securitygroup.id"
+		sgoption = "SSH/HTTP"
 
 	case inboundoption == 6:
 		sgstring="resource \"aws_security_group\" \"sshttps_securitygroup\" {\n"+
@@ -406,6 +414,7 @@ network traffic to your instances.`
 				 " tags = {\n"+
 				 " 	\"Name\" = \"sshttps_securitygroup\"\n}\n}\n"
 		sgname = "aws_security_group.sshttps_securitygroup.id"
+		sgoption = "SSH/HTTPS"
 
 	case inboundoption == 7:
 		sgstring="resource \"aws_security_group\" \"httphttps_securitygroup\" {\n"+
@@ -428,6 +437,7 @@ network traffic to your instances.`
 				 " 	\"Name\" = \"httphttps_securitygroup\"\n}\n}\n"
 
 		sgname = "aws_security_group.httphttps_securitygroup.id"
+		sgoption = "HTTP/HTTPS"
 	}
 
 	//build ec2 instance
@@ -445,18 +455,28 @@ network traffic to your instances.`
 	fmt.Println("VPC CLI Management Console")
 	fmt.Println("--------------------------")
 	fmt.Println("VPC with Single Public Subnet")
-	fmt.Println("=============================")
+	fmt.Println("=============================\n")
 	fmt.Println("Review your VPC configuration\n")
-	
-	fmt.Println(string(colorBackground),"VPC : "+custom_vpc,string(colorReset))
-	fmt.Println(string(colorBackground),"Region : "+selected_region,string(colorReset))
-	fmt.Println(string(colorBackground),"Availability Zone : "+azselected,string(colorReset))
-	fmt.Println(string(colorBackground),"IPv4 CIDR block : "+custom_vpc_cidr,string(colorReset))
-	fmt.Println(string(colorBackground),"Public Subnet : "+custom_public_subnet,string(colorReset))
-	fmt.Println(string(colorBackground),"Public Subnet CIDR block : "+custom_public_subnet_cidr,string(colorReset))
-	fmt.Println(string(colorBackground),"Ec2 Instance  : "+ec2_name,string(colorReset))
-	fmt.Println(string(colorBackground),"Ec2 Instance ami : "+ec2_ami,string(colorReset))
-	fmt.Println(string(colorBackground),"Ec2 Instace type  : "+ec2_type,string(colorReset))
+	data := [][]string{
+		[]string{"VPC",custom_vpc},
+		[]string{"IPv4 CIDR block",custom_vpc_cidr},
+		[]string{"Region",selected_region},
+		[]string{"Availability Zone",azselected},
+		[]string{"Public Subnet",custom_public_subnet},
+		[]string{"IPv4 CIDR block",custom_public_subnet_cidr},
+		[]string{"EC2 Instance",ec2_name},
+		[]string{"AMI",ec2_ami},
+		[]string{"EC2 Type",ec2_type},
+		[]string{"Firewall Policy (inbound)",sgoption},
+	}
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{"Options","Set Review"})
+	table.SetRowLine(true)
+	for _, v := range data {
+		table.Append(v)
+	}
+	table.Render()
+
 	fmt.Println("\n")
 	var reviewoption int
 	fmt.Println("[ 1 ] Continue")
