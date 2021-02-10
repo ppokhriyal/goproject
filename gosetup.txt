@@ -1,5 +1,5 @@
 Setup Go Development environment in ubuntu 20.04
-
+------------------------------------------------
 Go to the below URL and download the goXXX.linux-amd64.tar.gz
 
 https://golang.org/doc/install
@@ -11,3 +11,9 @@ https://golang.org/doc/install
 2. Add /usr/local/go/bin to the PATH environment variable.
    
    export PATH=$PATH:/usr/local/go/bin
+
+
+Install  Go table
+-----------------
+go get github.com/olekukonko/tablewriter
+
