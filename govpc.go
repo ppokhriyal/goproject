@@ -311,11 +311,6 @@ func start_build_proj(projectname string) int {
 	"resource \"aws_eip\" \"awseip\" {\n"+
 	 "vpc = true \n}\n"+
 	"#create security group for ELB,FE,MICRO and MYSQL\n"+elb_sg+fe_sg+micro_sg+mysql_sg+
-	"#create network interface for reverse proxy\n"+
-	"resource \"aws_network_interface\" \"reverse_proxy_nic\" {\n"+
-	" subnet_id = aws_subnet.custom_public_subnet.id\n"+
-	" associate_with_private_ip = [var.reverse_proxy_private_ip]\n"+
-	" security_groups = [ aws_security_group.reverse_proxy_sg.id ]\n}\n"+
 	"#create Reverse Proxy EC2 in public subnet\n"+
 	"resource \"aws_instance\" \"reverse_proxy\" {\n"+
 	" ami = var.ami1\n"+
@@ -325,7 +320,7 @@ func start_build_proj(projectname string) int {
 	" subnet_id = aws_subnet.custom_public_subnet.id\n"+
 	" associate_public_ip_address = true\n"+
 	" tags = {\n \"Name\" = \""+projectname+"_reverseproxy\"\n}\n}\n"+
-	"#create FE-ELB in private subnet\n"+
+	"#create FE-ELB private instance\n"+
 	"resource \"aws_instance\" \"fe-elb\" {\n"+
 	" ami = var.ami2\n"+
 	" instance_type = \"t2.micro\"\n"+
@@ -333,12 +328,60 @@ func start_build_proj(projectname string) int {
 	" security_groups = [ aws_security_group.elb_sg.id ]\n"+
 	" subnet_id = aws_subnet.custom_private_subnet.id\n"+
 	" tags = {\n \"Name\" = \""+projectname+"_fe-elb\"\n}\n}\n"+
+	"#create BE-ELB private instance\n"+
+	"resource \"aws_instance\" \"be-elb\" {\n"+
+	" ami = var.ami3\n"+
+	" instance_type = \"t2.micro\"\n"+
+	" availability_zone = data.aws_availability_zones.azs.names[1]\n"+
+	" security_groups = [ aws_security_group.elb_sg.id ]\n"+
+	" subnet_id = aws_subnet.custom_private_subnet.id\n"+
+	" tags = {\n \"Name\" = \""+projectname+"_be-elb\"\n}\n}\n"+
+	"#create FE-1 private instance\n"+
+	"resource \"aws_instance\" \"fe-1\" {\n"+
+	" ami = var.ami4\n"+
+	" instance_type = \"t3.medium\"\n"+
+	" availability_zone = data.aws_availability_zones.azs.names[1]\n"+
+	" security_groups = [ aws_security_group.fe_sg.id ]\n"+
+	" subnet_id = aws_subnet.custom_private_subnet.id\n"+
+	" tags = {\n \"Name\" = \""+projectname+"_fe-1\"\n}\n}\n"+
+	"#create FE-2 private instance\n"+
+	"resource \"aws_instance\" \"fe-2\" {\n"+
+	" ami = var.ami4\n"+
+	" instance_type = \"t3.medium\"\n"+
+	" availability_zone = data.aws_availability_zones.azs.names[1]\n"+
+	" security_groups = [ aws_security_group.fe_sg.id ]\n"+
+	" subnet_id = aws_subnet.custom_private_subnet.id\n"+
+	" tags = {\n \"Name\" = \""+projectname+"_fe-2\"\n}\n}\n"+
+	"#create MICRO-1 private instance\n"+
+	"resource \"aws_instance\" \"micro-1\" {\n"+
+	" ami = var.ami5\n"+
+	" instance_type = \"t3.medium\"\n"+
+	" availability_zone = data.aws_availability_zones.azs.names[1]\n"+
+	" security_groups = [ aws_security_group.micro_sg.id ]\n"+
+	" subnet_id = aws_subnet.custom_private_subnet.id\n"+
+	" tags = {\n \"Name\" = \""+projectname+"_micro-1\"\n}\n}\n"+
+	"#create MICRO-2 private instance\n"+
+	"resource \"aws_instance\" \"micro-2\" {\n"+
+	" ami = var.ami5\n"+
+	" instance_type = \"t3.medium\"\n"+
+	" availability_zone = data.aws_availability_zones.azs.names[1]\n"+
+	" security_groups = [ aws_security_group.micro_sg.id ]\n"+
+	" subnet_id = aws_subnet.custom_private_subnet.id\n"+
+	" tags = {\n \"Name\" = \""+projectname+"_micro-2\"\n}\n}\n"+
+	"#create MYSQL private instance\n"+
+	"resource \"aws_instance\" \"mysql\" {\n"+
+	" ami = var.ami6\n"+
+	" instance_type = \"t3.medium\"\n"+
+	" availability_zone = data.aws_availability_zones.azs.names[1]\n"+
+	" security_groups = [ aws_security_group.mysql_sg.id ]\n"+
+	" subnet_id = aws_subnet.custom_private_subnet.id\n"+
+	" tags = {\n \"Name\" = \""+projectname+"_mysql\"\n}\n}\n"+
 	"#nat setup\n"+
 	"resource \"aws_nat_gateway\" \"awsnat\" {\n"+
 	" allocation_id = aws_eip.awseip.id\n"+
 	" subnet_id = aws_subnet.custom_public_subnet.id\n"+
 	" tags = {\n"+
-	" 	\"Name\" = \"nat\"\n}\n"
+	" 	\"Name\" = \"nat\"\n}\n}\n"	
 
 
 	_,maintferr := project_main_tf.WriteString(maintf)
