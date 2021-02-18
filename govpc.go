@@ -91,8 +91,8 @@ func start_build_proj(projectname string) int {
 	// Reverse-Proxy-SG 
 	reverse_proxy_sg := "resource \"aws_security_group\" \"reverse_proxy_sg\" {\n"+
 					   " name = \"reverse-proxy-sg\"\n"+
-					   " description = \"security group for reverse proxy security group\"\n"+
-					   " vpc_id = aws_vpc.custom_public_vpc.id\n"+
+					   " description = \"security group for reverse proxy\"\n"+
+					   " vpc_id = aws_vpc.custom_vpc.id\n"+
 					   " ingress {\n"+
 					   "   description = \"allow 22 port\"\n"+
 					   "   from_port = 22\n"+
@@ -113,6 +113,112 @@ func start_build_proj(projectname string) int {
 					   "   cidr_blocks = [\"0.0.0.0/0\"]\n}\n"+
 					   " tags = {\n"+
 				 	   " 	\"Name\" = \"Reverse-Proxy-SG\"\n}\n}\n"
+	// ELB-SG
+	/*elb_sg := "resource \"aws_security_group\" \"elb_sg\" {\n"+
+					   " name = \"elb-sg\"\n"+
+					   " description = \"security group for ELB\"\n"+
+					   " vpc_id = aws_vpc.custom_vpc.id\n"+
+					   " ingress {\n"+
+					   "   description = \"allow 22 port\"\n"+
+					   "   from_port = 22\n"+
+					   "   to_port = 22\n"+
+					   "   protocol = \"tcp\"\n"+
+					   "   cidr_blocks = [\"0.0.0.0/0\"]\n}\n"+
+					   " ingress {\n"+
+					   "   description = \"allow 80 port\"\n"+
+					   "   from_port = 80\n"+
+					   "   to_port = 80\n"+
+					   "   protocol = \"tcp\"\n"+
+					   "   cidr_blocks = [\"0.0.0.0/0\"]\n}\n"+
+					   " ingress {\n"+
+					   "   description = \"allow 443 port\"\n"+
+					   "   from_port = 443\n"+
+					   "   to_port = 443\n"+
+					   "   protocol = \"tcp\"\n"+
+					   "   cidr_blocks = [\"0.0.0.0/0\"]\n}\n"+
+					   " tags = {\n"+
+				 	   " 	\"Name\" = \"ELB-SG\"\n}\n}\n"*/
+	// FE-SG
+	/*fe_sg := "resource \"aws_security_group\" \"fe_sg\" {\n"+
+					   " name = \"fe-sg\"\n"+
+					   " description = \"security group for FE\"\n"+
+					   " vpc_id = aws_vpc.custom_vpc.id\n"+
+					   " ingress {\n"+
+					   "   description = \"allow 22 port\"\n"+
+					   "   from_port = 22\n"+
+					   "   to_port = 22\n"+
+					   "   protocol = \"tcp\"\n"+
+					   "   cidr_blocks = [\"0.0.0.0/0\"]\n}\n"+
+					   " ingress {\n"+
+					   "   description = \"allow 80 port\"\n"+
+					   "   from_port = 80\n"+
+					   "   to_port = 80\n"+
+					   "   protocol = \"tcp\"\n"+
+					   "   cidr_blocks = [\"0.0.0.0/0\"]\n}\n"+
+					   " ingress {\n"+
+					   "   description = \"allow 443 port\"\n"+
+					   "   from_port = 443\n"+
+					   "   to_port = 443\n"+
+					   "   protocol = \"tcp\"\n"+
+					   "   cidr_blocks = [\"0.0.0.0/0\"]\n}\n"+
+					   " tags = {\n"+
+				 	   " 	\"Name\" = \"FE-SG\"\n}\n}\n"*/
+
+	/*micro_sg := "resource \"aws_security_group\" \"micro_sg\" {\n"+
+					   " name = \"micro-sg\"\n"+
+					   " description = \"security group for micro-services\"\n"+
+					   " vpc_id = aws_vpc.custom_vpc.id\n"+
+					   " ingress {\n"+
+					   "   description = \"allow 22 port\"\n"+
+					   "   from_port = 22\n"+
+					   "   to_port = 22\n"+
+					   "   protocol = \"tcp\"\n"+
+					   "   cidr_blocks = [\"0.0.0.0/0\"]\n}\n"+
+					   " ingress {\n"+
+					   "   description = \"allow 80 port\"\n"+
+					   "   from_port = 80\n"+
+					   "   to_port = 80\n"+
+					   "   protocol = \"tcp\"\n"+
+					   "   cidr_blocks = [\"0.0.0.0/0\"]\n}\n"+
+					   " ingress {\n"+
+					   "   description = \"allow 443 port\"\n"+
+					   "   from_port = 443\n"+
+					   "   to_port = 443\n"+
+					   "   protocol = \"tcp\"\n"+
+					   "   cidr_blocks = [\"0.0.0.0/0\"]\n}\n"+
+					   " tags = {\n"+
+				 	   " 	\"Name\" = \"MICRO-SG\"\n}\n}\n"*/
+
+	/*mysql_sg := "resource \"aws_security_group\" \"mysql_sg\" {\n"+
+					   " name = \"mysql-sg\"\n"+
+					   " description = \"security group for MYSQL\"\n"+
+					   " vpc_id = aws_vpc.custom_vpc.id\n"+
+					   " ingress {\n"+
+					   "   description = \"allow 22 port\"\n"+
+					   "   from_port = 22\n"+
+					   "   to_port = 22\n"+
+					   "   protocol = \"tcp\"\n"+
+					   "   cidr_blocks = [\"0.0.0.0/0\"]\n}\n"+
+					   " ingress {\n"+
+					   "   description = \"allow 80 port\"\n"+
+					   "   from_port = 80\n"+
+					   "   to_port = 80\n"+
+					   "   protocol = \"tcp\"\n"+
+					   "   cidr_blocks = [\"0.0.0.0/0\"]\n}\n"+
+					   " ingress {\n"+
+					   "   description = \"allow 443 port\"\n"+
+					   "   from_port = 443\n"+
+					   "   to_port = 443\n"+
+					   "   protocol = \"tcp\"\n"+
+					   "   cidr_blocks = [\"0.0.0.0/0\"]\n}\n"+
+					   " ingress {\n"+
+					   "   description = \"allow 3306 port\"\n"+
+					   "   from_port = 3306\n"+
+					   "   to_port = 3306\n"+
+					   "   protocol = \"tcp\"\n"+
+					   "   cidr_blocks = [\"0.0.0.0/0\"]\n}\n"+
+					   " tags = {\n"+
+				 	   " 	\"Name\" = \"MYSQL-SG\"\n}\n}\n"*/
 
 	// write main.tf
 	maintf := "#configure aws provider\n"+
