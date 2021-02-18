@@ -332,7 +332,13 @@ func start_build_proj(projectname string) int {
 	" availability_zone = data.aws_availability_zones.azs.names[1]\n"+
 	" security_groups = [ aws_security_group.elb_sg.id ]\n"+
 	" subnet_id = aws_subnet.custom_private_subnet.id\n"+
-	" tags = {\n \"Name\" = \""+projectname+"_fe-elb\"\n}\n}\n"
+	" tags = {\n \"Name\" = \""+projectname+"_fe-elb\"\n}\n}\n"+
+	"#nat setup\n"+
+	"resource \"aws_nat_gateway\" \"awsnat\" {\n"+
+	" allocation_id = aws_eip.awseip.id\n"+
+	" subnet_id = aws_subnet.custom_public_subnet.id\n"+
+	" tags = {\n"+
+	" 	\"Name\" = \"nat\"\n}\n"
 
 
 	_,maintferr := project_main_tf.WriteString(maintf)
