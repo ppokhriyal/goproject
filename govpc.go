@@ -87,6 +87,33 @@ func start_build_proj(projectname string) int {
 	_,variablerr := project_variable_tf.WriteString(variabletf)
 	check_err(variablerr)
 
+	// write security group for public
+	// Reverse-Proxy-SG 
+	reverse_proxy_sg := "resource \"aws_security_group\" \"reverse_proxy_sg\" {\n"+
+					   " name = \"reverse-proxy-sg\"\n"+
+					   " description = \"security group for reverse proxy security group\"\n"+
+					   " vpc_id = aws_vpc.custom_public_vpc.id\n"+
+					   " ingress {\n"+
+					   "   description = \"allow 22 port\"\n"+
+					   "   from_port = 22\n"+
+					   "   to_port = 22\n"+
+					   "   protocol = \"tcp\"\n"+
+					   "   cidr_blocks = [\"0.0.0.0/0\"]\n}\n"+
+					   " ingress {\n"+
+					   "   description = \"allow 80 port\"\n"+
+					   "   from_port = 80\n"+
+					   "   to_port = 80\n"+
+					   "   protocol = \"tcp\"\n"+
+					   "   cidr_blocks = [\"0.0.0.0/0\"]\n}\n"+
+					   " ingress {\n"+
+					   "   description = \"allow 443 port\"\n"+
+					   "   from_port = 443\n"+
+					   "   to_port = 443\n"+
+					   "   protocol = \"tcp\"\n"+
+					   "   cidr_blocks = [\"0.0.0.0/0\"]\n}\n"+
+					   " tags = {\n"+
+				 	   " 	\"Name\" = \"Reverse-Proxy-SG\"\n}\n}\n"
+
 	// write main.tf
 	maintf := "#configure aws provider\n"+
 	"provider \"aws\" {\n"+
@@ -94,11 +121,48 @@ func start_build_proj(projectname string) int {
 		"access_key = var."+projectname+"_accesskey\n"+
 		"secret_key = var."+projectname+"_secretkey\n}\n"+
 	"#create custom public vpc\n"+
-	"resource \"aws_vpc\" \"custom_public_vpc\" {\n"+
+	"resource \"aws_vpc\" \"custom_vpc\" {\n"+
 	" cidr_block = var."+projectname+"_vpcidr\n"+
 	" enable_dns_support = true\n"+
 	" enable_dns_hostnames = true\n"+
-	" tags = {\n \"Name\" = \""+projectname+"_vpc\"\n}\n}\n"
+	" tags = {\n \"Name\" = \""+projectname+"_vpc\"\n}\n}\n"+
+	"#create custom public subnet\n"+
+	"resource \"aws_subnet\" \"custom_public_subnet\" {\n"+
+	" vpc_id = aws_vpc.custom_vpc.id\n"+
+	" cidr_block = var."+projectname+"_publicsubnetcidr\n"+
+	" availability_zone = data.aws_availability_zones.azs.names[0]\n"+
+	" tags = {\n \"Name\" = \""+projectname+"_publicsubnet\"\n}\n}\n"+
+	"#create custom internet gateway\n"+
+	"resource \"aws_internet_gateway\" \"customigw\" {\n"+
+	" vpc_id = aws_vpc.custom_vpc.id\n"+
+	" tags = {\n\"Name\" = \""+projectname+"_customigw\"\n}\n}\n"+
+	"#create public route table\n"+
+	"resource \"aws_route_table\" \"publicroute\" {\n"+
+	" vpc_id = aws_vpc.custom_vpc.id\n"+
+	" route {\n cidr_block = \"0.0.0.0/0\" \n gateway_id = aws_internet_gateway.customigw.id\n }\n tags = {\n \"Name\" = \""+projectname+"_publicroute\"\n}\n}\n"+
+	"#associate public subnet to public route\n"+
+	"resource \"aws_route_table_association\" \"publicsubacc\" {\n"+
+	" subnet_id = aws_subnet.custom_public_subnet.id\n"+
+	" route_table_id = aws_route_table.publicroute.id \n}\n"+
+	"#create custom security group for public subnet\n"+reverse_proxy_sg+
+	"#create custom private subnet\n"+
+	"resource \"aws_subnet\" \"custom_private_subnet\" {\n"+
+	" vpc_id = aws_vpc.custom_vpc.id\n"+
+	" cidr_block = var."+projectname+"_privatesubnetcidr\n"+
+	" availability_zone = data.aws_availability_zones.azs.names[1]\n"+
+	" tags = {\n \"Name\" = \""+projectname+"_privatesubnet\"\n}\n}\n"+
+	"#create private route table\n"+
+	"resource \"aws_route_table\" \"privateroute\" {\n"+
+	" vpc_id = aws_vpc.custom_vpc.id\n"+
+	" route {\n cidr_block = \"0.0.0.0/0\" \n nat_gateway_id = aws_nat_gateway.awsnat.id\n }\n tags = {\n \"Name\" = \""+projectname+"_privateroute\"\n}\n}\n"+
+	"#associate private subnet to private route\n"+
+	"resource \"aws_route_table_association\" \"privatesubacc\" {\n"+
+	" subnet_id = aws_subnet.custom_private_subnet.id\n"+
+	" route_table_id = aws_route_table.privateroute.id \n}\n"+
+	"#elastic ip\n"+
+	"resource \"aws_eip\" \"awseip\" {\n"+
+	 "vpc = true \n}\n"
+
 
 	_,maintferr := project_main_tf.WriteString(maintf)
 	check_err(maintferr)
