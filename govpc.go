@@ -99,7 +99,31 @@ func start_build_proj(projectname string) int {
 		"default = \"\" \n}\n"+
 	"#ami for MySQL\n"+
 	"variable \"ami6\" {\n"+
-		"default = \"\" \n}\n"
+		"default = \"\" \n}\n"+
+	"#reverse_proxy private_ip\n"+
+	"variable \"reverse_proxy_private_ip\" {\n"+
+	" default = \"10.0.0.40\" \n}\n"+
+	"#fe-elb private ip\n"+
+	"variable \"fe-elb_private_ip\" {\n"+
+	" default = \"10.0.1.41\" \n}\n"+
+	"#be-elb private ip\n"+
+	"variable \"be-elb_private_ip\" {\n"+
+	" default = \"10.0.1.42\" \n}\n"+
+	"#fe-1 private ip\n"+
+	"variable \"fe-1_private_ip\" {\n"+
+	" default = \"10.0.1.51\" \n}\n"+
+	"#fe-2 private ip\n"+
+	"variable \"fe-2_private_ip\" {\n"+
+	" default = \"10.0.1.52\" \n}\n"+
+	"#micro-1 private ip\n"+
+	"variable \"micro-1_private_ip\" {\n"+
+	" default = \"10.0.1.61\" \n}\n"+
+	"#micro-2 private ip\n"+
+	"variable \"micro-2_private_ip\" {\n"+
+	" default = \"10.0.1.62\" \n}\n"+
+	"#mysql private ip\n"+
+	"variable \"mysql_private_ip\" {\n"+
+	" default = \"10.0.1.71\" \n}\n"
 
 
 	_,variablerr := project_variable_tf.WriteString(variabletf)
@@ -287,6 +311,11 @@ func start_build_proj(projectname string) int {
 	"resource \"aws_eip\" \"awseip\" {\n"+
 	 "vpc = true \n}\n"+
 	"#create security group for ELB,FE,MICRO and MYSQL\n"+elb_sg+fe_sg+micro_sg+mysql_sg+
+	"#create network interface for reverse proxy\n"+
+	"resource \"aws_network_interface\" \"reverse_proxy_nic\" {\n"+
+	" subnet_id = aws_subnet.custom_public_subnet.id\n"+
+	" associate_with_private_ip = [var.reverse_proxy_private_ip]\n"+
+	" security_groups = [ aws_security_group.reverse_proxy_sg.id ]\n}\n"+
 	"#create Reverse Proxy EC2 in public subnet\n"+
 	"resource \"aws_instance\" \"reverse_proxy\" {\n"+
 	" ami = var.ami1\n"+
