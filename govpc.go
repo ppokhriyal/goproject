@@ -81,7 +81,25 @@ func start_build_proj(projectname string) int {
 		"default = \"10.0.0.0/24\" \n}\n"+
 	"#private subnet cidr\n"+
 	"variable \""+projectname+"_privatesubnetcidr\" {\n"+
-		"default = \"10.0.1.0/24\" \n}\n"
+		"default = \"10.0.1.0/24\" \n}\n"+
+	"#ami for reverse proxy\n"+
+	"variable \"ami1\" {\n"+
+		"default = \"\" \n}\n"+
+	"#ami for FE-ELB\n"+
+	"variable \"ami2\" {\n"+
+		"default = \"\" \n}\n"+
+	"#ami for BE-ELB\n"+
+	"variable \"ami3\" {\n"+
+		"default = \"\" \n}\n"+
+	"#ami for FE-1 FE-2\n"+
+	"variable \"ami4\" {\n"+
+		"default = \"\" \n}\n"+
+	"#ami for MICRO-1 MICRO-2\n"+
+	"variable \"ami5\" {\n"+
+		"default = \"\" \n}\n"+
+	"#ami for MySQL\n"+
+	"variable \"ami6\" {\n"+
+		"default = \"\" \n}\n"
 
 
 	_,variablerr := project_variable_tf.WriteString(variabletf)
@@ -114,7 +132,7 @@ func start_build_proj(projectname string) int {
 					   " tags = {\n"+
 				 	   " 	\"Name\" = \"Reverse-Proxy-SG\"\n}\n}\n"
 	// ELB-SG
-	/*elb_sg := "resource \"aws_security_group\" \"elb_sg\" {\n"+
+	elb_sg := "resource \"aws_security_group\" \"elb_sg\" {\n"+
 					   " name = \"elb-sg\"\n"+
 					   " description = \"security group for ELB\"\n"+
 					   " vpc_id = aws_vpc.custom_vpc.id\n"+
@@ -137,9 +155,9 @@ func start_build_proj(projectname string) int {
 					   "   protocol = \"tcp\"\n"+
 					   "   cidr_blocks = [\"0.0.0.0/0\"]\n}\n"+
 					   " tags = {\n"+
-				 	   " 	\"Name\" = \"ELB-SG\"\n}\n}\n"*/
+				 	   " 	\"Name\" = \"ELB-SG\"\n}\n}\n"
 	// FE-SG
-	/*fe_sg := "resource \"aws_security_group\" \"fe_sg\" {\n"+
+	fe_sg := "resource \"aws_security_group\" \"fe_sg\" {\n"+
 					   " name = \"fe-sg\"\n"+
 					   " description = \"security group for FE\"\n"+
 					   " vpc_id = aws_vpc.custom_vpc.id\n"+
@@ -162,9 +180,9 @@ func start_build_proj(projectname string) int {
 					   "   protocol = \"tcp\"\n"+
 					   "   cidr_blocks = [\"0.0.0.0/0\"]\n}\n"+
 					   " tags = {\n"+
-				 	   " 	\"Name\" = \"FE-SG\"\n}\n}\n"*/
+				 	   " 	\"Name\" = \"FE-SG\"\n}\n}\n"
 
-	/*micro_sg := "resource \"aws_security_group\" \"micro_sg\" {\n"+
+	micro_sg := "resource \"aws_security_group\" \"micro_sg\" {\n"+
 					   " name = \"micro-sg\"\n"+
 					   " description = \"security group for micro-services\"\n"+
 					   " vpc_id = aws_vpc.custom_vpc.id\n"+
@@ -187,9 +205,9 @@ func start_build_proj(projectname string) int {
 					   "   protocol = \"tcp\"\n"+
 					   "   cidr_blocks = [\"0.0.0.0/0\"]\n}\n"+
 					   " tags = {\n"+
-				 	   " 	\"Name\" = \"MICRO-SG\"\n}\n}\n"*/
+				 	   " 	\"Name\" = \"MICRO-SG\"\n}\n}\n"
 
-	/*mysql_sg := "resource \"aws_security_group\" \"mysql_sg\" {\n"+
+	mysql_sg := "resource \"aws_security_group\" \"mysql_sg\" {\n"+
 					   " name = \"mysql-sg\"\n"+
 					   " description = \"security group for MYSQL\"\n"+
 					   " vpc_id = aws_vpc.custom_vpc.id\n"+
@@ -218,7 +236,7 @@ func start_build_proj(projectname string) int {
 					   "   protocol = \"tcp\"\n"+
 					   "   cidr_blocks = [\"0.0.0.0/0\"]\n}\n"+
 					   " tags = {\n"+
-				 	   " 	\"Name\" = \"MYSQL-SG\"\n}\n}\n"*/
+				 	   " 	\"Name\" = \"MYSQL-SG\"\n}\n}\n"
 
 	// write main.tf
 	maintf := "#configure aws provider\n"+
@@ -267,7 +285,25 @@ func start_build_proj(projectname string) int {
 	" route_table_id = aws_route_table.privateroute.id \n}\n"+
 	"#elastic ip\n"+
 	"resource \"aws_eip\" \"awseip\" {\n"+
-	 "vpc = true \n}\n"
+	 "vpc = true \n}\n"+
+	"#create security group for ELB,FE,MICRO and MYSQL\n"+elb_sg+fe_sg+micro_sg+mysql_sg+
+	"#create Reverse Proxy EC2 in public subnet\n"+
+	"resource \"aws_instance\" \"reverse_proxy\" {\n"+
+	" ami = var.ami1\n"+
+	" instance_type = \"t2.micro\"\n"+
+	" availability_zone = data.aws_availability_zones.azs.names[0]\n"+
+	" security_groups = [ aws_security_group.reverse_proxy_sg.id ]\n"+
+	" subnet_id = aws_subnet.custom_public_subnet.id\n"+
+	" associate_public_ip_address = true\n"+
+	" tags = {\n \"Name\" = \""+projectname+"_reverseproxy\"\n}\n}\n"+
+	"#create FE-ELB in private subnet\n"+
+	"resource \"aws_instance\" \"fe-elb\" {\n"+
+	" ami = var.ami2\n"+
+	" instance_type = \"t2.micro\"\n"+
+	" availability_zone = data.aws_availability_zones.azs.names[1]\n"+
+	" security_groups = [ aws_security_group.elb_sg.id ]\n"+
+	" subnet_id = aws_subnet.custom_private_subnet.id\n"+
+	" tags = {\n \"Name\" = \""+projectname+"_fe-elb\"\n}\n}\n"
 
 
 	_,maintferr := project_main_tf.WriteString(maintf)
