@@ -1,2 +1,10 @@
 projectname: "myproject"
-region: "us-east1"
+awskey:
+  region: "us-east-1"
+  access_key: "xxxxxxxxxxxxxxxxxxxx"
+  secret_key: "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
+buildvpc:
+  name: "myfirstvpc"
+  cidr_block: "10.0.0.0/16"
+  enable_dns_support: "true"
+  enable_dns_hostnames: "true"
