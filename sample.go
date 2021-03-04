@@ -25,5 +25,5 @@ func main(){
 	if err != nil {
 		log.Printf("error: %v", err)
 	}
-	fmt.Println(f.DailyHours)
+	fmt.Println(f.Tasks[0])
 }
