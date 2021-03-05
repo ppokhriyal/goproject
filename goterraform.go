@@ -34,6 +34,12 @@ func validate_access_secret_key(accesskeys,secretkeys string) bool {
 		return status
 	}
 }
+//function check errors
+func check_err(e error){
+	if e !=nil {
+		panic(e)
+	}
+}
 //Structure of GoTerraform.Yaml
 type AWS struct{
 	ProjectName string	`yaml:"projectname"`
@@ -48,6 +54,7 @@ func main(){
 	var selected_vpcname string
 	var selected_accesskey string
 	var selected_secretkey string
+	
 
 	f := &AWS{}
 	source,err := ioutil.ReadFile("goterraform.yaml")
@@ -72,10 +79,20 @@ func main(){
 		fmt.Println("Updating Project : "+f.ProjectName)
 		os.RemoveAll(f.ProjectName)
 		os.MkdirAll(f.ProjectName,0755)
+		//create project.tf and project_variable.tf file
+		pwd,_ := os.Getwd()
+		filemain_tf,err2 := os.Create(pwd+"/"+f.ProjectName+"/"+f.ProjectName+"_main.tf")
+		check_err(err2)
+		defer filemain_tf.Close()
 	} else {
 		//creating new project workspace
 		fmt.Println("Creating Project : "+f.ProjectName)
 		os.MkdirAll(f.ProjectName,0755)
+		//create project.tf and project_variable.tf file
+		pwd,_ := os.Getwd()
+		filemain_tf,err2 := os.Create(pwd+"/"+f.ProjectName+"/"+f.ProjectName+"_main.tf")
+		check_err(err2)
+		defer filemain_tf.Close()
 	}
 	//build awskey/region
 	// 1. check for aws region 'ask'/valid_regionname
@@ -104,6 +121,22 @@ func main(){
 	selected_accessecretkey_result :=  validate_access_secret_key(selected_accesskey,selected_secretkey)
 	if selected_accessecretkey_result == true {
 		fmt.Println("Selected AWS Key : "+selected_accesskey)
+		//write project main.tf
+		maintf := "#configure AWS provider\n"+
+		"provider \"aws\" {\n"+
+		" region = \""+selected_region+"\"\n"+
+		" access_key = \""+selected_accesskey+"\"\n"+
+		" secret_key = \""+selected_secretkey+"\"\n}\n"
+		pwd,_ := os.Getwd()
+		fil,err := os.OpenFile(pwd+"/"+f.ProjectName+"/"+f.ProjectName+"_main.tf", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0755)
+		check_err(err)
+		if _, err := fil.Write([]byte(maintf)); err != nil {
+			log.Fatal(err)
+		}
+		if err := fil.Close(); err != nil {
+			log.Fatal(err)
+		}
+
 	} else {
 		fmt.Println("\nError: invalid Access/Secret key")
 		os.Exit(1)
