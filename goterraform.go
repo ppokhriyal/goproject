@@ -61,6 +61,11 @@ type AWS struct {
 		CidrBlock        string `yaml:"cidr_block"`
 		AvailabilityZone string `yaml:"availability_zone"`
 	} `yaml:"buildsubnet"`
+	Securitygroups []struct {
+		Name         string `yaml:"name"`
+		Description  string `yaml:"description"`
+		InboundPorts []int  `yaml:"inbound_ports"`
+	} `yaml:"securitygroups"`
 }
 
 func main(){
@@ -185,12 +190,30 @@ func main(){
 	for count < buildsubnet_count {
 		
 		if f.Buildsubnet[count].Type == "public" {
+			//a. create public subnet
+			//b. create IGW
+			//c. create route table
+			//d. subnet association with route table
+
 			maintf := "#Configure Public Subnet\n"+
 			"resource \"aws_subnet\" \"custom_publicsubnet_"+strconv.Itoa(count)+"\" {\n"+
 			" vpc_id = aws_vpc.custom_vpc.id\n"+
 			" cidr_block = \""+f.Buildsubnet[count].CidrBlock+"\"\n"+
 			" availability_zone = \""+f.Buildsubnet[count].AvailabilityZone+"\"\n"+
-			" tags = {\n \"Name\" = \""+f.Projectname+"_publicsubet_"+strconv.Itoa(count)+"\"\n}\n}\n"
+			" tags = {\n Name = \""+f.Projectname+"_publicsubet_"+strconv.Itoa(count)+"\"\n}\n}\n"+
+			"#create IGW for public subnet\n"+
+			"resource \"aws_internet_gateway\" \"custom_publicigw_"+strconv.Itoa(count)+"\" {\n"+
+			" vpc_id = aws_vpc.custom_vpc.id\n"+
+			" tags = {\n Name = \""+f.Projectname+"_publicigw_"+strconv.Itoa(count)+"\"\n}\n}\n"+
+			"#create Route for public subnet\n"+
+			"resource \"aws_route_table\" \"custom_publicroute_"+strconv.Itoa(count)+"\" {\n"+
+			" vpc_id = aws_vpc.custom_vpc.id\n"+
+			" route {\n cidr_block = \"0.0.0.0/0\"\n gateway_id = aws_internet_gateway.custom_publicigw_"+strconv.Itoa(count)+".id\n}\n"+
+			" tags = {\n Name = \""+f.Projectname+"_publicroute_"+strconv.Itoa(count)+"\"\n}\n}\n"+
+			"#associate public subnet to public route\n"+
+			"resource \"aws_route_table_association\" \"custom_routepubassociation_"+strconv.Itoa(count)+"\" {\n"+
+			" subnet_id = aws_subnet.custom_publicsubnet_"+strconv.Itoa(count)+".id \n"+
+			" route_table_id = aws_route_table.custom_publicroute_"+strconv.Itoa(count)+".id \n}\n"
 			
 			pwd,_ := os.Getwd()
 			fil,err := os.OpenFile(pwd+"/"+f.Projectname+"/"+f.Projectname+"_main.tf", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0755)
@@ -203,9 +226,41 @@ func main(){
 			}
 			
 		} else {
+
+			//a. create private subnet
+			//b. create IGW
+			//c. create route table
+			//d. subnet association with route table
+
+			maintf := "#Configure Private Subnet\n"+
+			"resource \"aws_subnet\" \"custom_privatesubnet_"+strconv.Itoa(count)+"\" {\n"+
+			" vpc_id = aws_vpc.custom_vpc.id\n"+
+			" cidr_block = \""+f.Buildsubnet[count].CidrBlock+"\"\n"+
+			" availability_zone = \""+f.Buildsubnet[count].AvailabilityZone+"\"\n"+
+			" tags = {\n Name = \""+f.Projectname+"_privatesubet_"+strconv.Itoa(count)+"\"\n}\n}\n"+
+			"#create Route for private subnet\n"+
+			"resource \"aws_route_table\" \"custom_privateroute_"+strconv.Itoa(count)+"\" {\n"+
+			" vpc_id = aws_vpc.custom_vpc.id\n"+
+			" tags = {\n Name = \""+f.Projectname+"_privateroute_"+strconv.Itoa(count)+"\"\n}\n}\n"+
+			"#associate private subnet to private route\n"+
+			"resource \"aws_route_table_association\" \"custom_routeprivassociation_"+strconv.Itoa(count)+"\" {\n"+
+			" subnet_id = aws_subnet.custom_privatesubnet_"+strconv.Itoa(count)+".id \n"+
+			" route_table_id = aws_route_table.custom_privateroute_"+strconv.Itoa(count)+".id \n}"
+			
+			pwd,_ := os.Getwd()
+			fil,err := os.OpenFile(pwd+"/"+f.Projectname+"/"+f.Projectname+"_main.tf", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0755)
+			check_err(err)
+			if _, err := fil.Write([]byte(maintf)); err != nil {
+				log.Fatal(err)
+			}
+			if err := fil.Close(); err != nil {
+				log.Fatal(err)
+			}
 			fmt.Println("Private it is")
 		}
 		count += 1
 	}
+	//build security group
+	fmt.Println(f.Securitygroups[0].InboundPorts)
 	
 }	

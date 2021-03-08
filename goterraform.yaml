@@ -13,7 +13,15 @@ buildsubnet:
     name: "publicsubnet"
     cidr_block: "10.0.1.0/16"
     availability_zone: "us-east-1a"
+    nat: true
   - type: "private"
     name: "privatesubnet"
     cidr_block: "10.0.2.0/14"
     availability_zone: "us-east-1b"
+securitygroups:
+  - name: "sg1"
+    description: "this is first sg"
+    inbound_ports: [80,22,443]
+  - name: "sg2"
+    description: "this is second sg"
+    inbound_ports: [22,80]
