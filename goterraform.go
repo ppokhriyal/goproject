@@ -66,16 +66,24 @@ type AWS struct {
 		Description  string `yaml:"description"`
 		InboundPorts []int  `yaml:"inbound_ports"`
 	} `yaml:"securitygroups"`
+	Buildec2Instances []struct {
+		Type         string   `yaml:"type"`
+		Name         string   `yaml:"name"`
+		Instancetype string   `yaml:"instancetype"`
+		Ami          string   `yaml:"ami"`
+		Security     []string `yaml:"security"`
+		Key          string   `yaml:"key"`
+		Hddsize      string   `yaml:"hddsize"`
+	} `yaml:"buildec2instances"`
 }
 
 func main(){
 
-	//Vriables
+	//Global Vriables
 	var selected_region string
-	var selected_vpcname string
 	var selected_accesskey string
 	var selected_secretkey string
-	
+	var selected_vpcname string
 
 	f := &AWS{}
 	source,err := ioutil.ReadFile("goterraform.yaml")
@@ -100,22 +108,13 @@ func main(){
 		fmt.Println("Updating Project : "+f.Projectname)
 		os.RemoveAll(f.Projectname)
 		os.MkdirAll(f.Projectname,0755)
-		//create project.tf and project_variable.tf file
-		pwd,_ := os.Getwd()
-		filemain_tf,err2 := os.Create(pwd+"/"+f.Projectname+"/"+f.Projectname+"_main.tf")
-		check_err(err2)
-		defer filemain_tf.Close()
 	} else {
 		//creating new project workspace
 		fmt.Println("Creating Project : "+f.Projectname)
 		os.MkdirAll(f.Projectname,0755)
-		//create project.tf and project_variable.tf file
-		pwd,_ := os.Getwd()
-		filemain_tf,err2 := os.Create(pwd+"/"+f.Projectname+"/"+f.Projectname+"_main.tf")
-		check_err(err2)
-		defer filemain_tf.Close()
 	}
-	//build awskey/region
+
+	//Build AWS Provider
 	// 1. check for aws region 'ask'/valid_regionname
 	selected_region = f.Awskey.Region
 
@@ -143,19 +142,19 @@ func main(){
 	if selected_accessecretkey_result == true {
 		fmt.Println("Selected AWS Key : "+selected_accesskey)
 		//write project main.tf
-		maintf := "#configure AWS provider\n"+
+		providertf := "#configure AWS provider\n"+
 		"provider \"aws\" {\n"+
 		" region = \""+selected_region+"\"\n"+
 		" access_key = \""+selected_accesskey+"\"\n"+
 		" secret_key = \""+selected_secretkey+"\"\n}\n"
 		
-		pwd,_ := os.Getwd()
-		fil,err := os.OpenFile(pwd+"/"+f.Projectname+"/"+f.Projectname+"_main.tf", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0755)
+		pwd1,_ := os.Getwd()
+		fil1,err := os.OpenFile(pwd1+"/"+f.Projectname+"/"+f.Projectname+"_provider.tf", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0755)
 		check_err(err)
-		if _, err := fil.Write([]byte(maintf)); err != nil {
+		if _, err := fil1.Write([]byte(providertf)); err != nil {
 			log.Fatal(err)
 		}
-		if err := fil.Close(); err != nil {
+		if err := fil1.Close(); err != nil {
 			log.Fatal(err)
 		}
 
@@ -163,39 +162,38 @@ func main(){
 		fmt.Println("\nError: invalid Access/Secret key")
 		os.Exit(1)
 	}
-	//build vpc
+	
+	//Build VPC
 	selected_vpcname = f.Buildvpc.Name
 	fmt.Println("VPC Name	 : "+selected_vpcname)
-	maintf := "#Create VPC\n"+
+	vpctf := "#Create VPC\n"+
 	"resource \"aws_vpc\" \"custom_vpc\" {\n"+
 	 "cidr_block = \""+f.Buildvpc.CidrBlock+"\"\n"+
 	 "enable_dns_support = "+f.Buildvpc.EnableDNSSupport+"\n"+
 	 "enable_dns_hostnames = "+f.Buildvpc.EnableDNSHostnames+"\n"+
 	 "tags = {\n"+
 	  " Name = \""+f.Projectname+"_vpc\"\n}\n}\n"
-
-	pwd,_ := os.Getwd()
-	fil,err := os.OpenFile(pwd+"/"+f.Projectname+"/"+f.Projectname+"_main.tf", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0755)
+	
+	pwd2,_ := os.Getwd()
+	fil2,err := os.OpenFile(pwd2+"/"+f.Projectname+"/"+f.Projectname+"_vpc.tf", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0755)
 	check_err(err)
-	if _, err := fil.Write([]byte(maintf)); err != nil {
-		log.Fatal(err)
+	if _, err := fil2.Write([]byte(vpctf)); err != nil {
+		  log.Fatal(err)
 	}
-	if err := fil.Close(); err != nil {
-		log.Fatal(err)
+	if err := fil2.Close(); err != nil {
+	  log.Fatal(err)
 	}
-
-	//build subnet
+	  
+	//Build Subnet
 	buildsubnet_count := len(f.Buildsubnet)
 	count := 0
 	for count < buildsubnet_count {
-		
 		if f.Buildsubnet[count].Type == "public" {
 			//a. create public subnet
 			//b. create IGW
 			//c. create route table
 			//d. subnet association with route table
-
-			maintf := "#Configure Public Subnet\n"+
+			subnetf := "#Configure Public Subnet\n"+
 			"resource \"aws_subnet\" \"custom_publicsubnet_"+strconv.Itoa(count)+"\" {\n"+
 			" vpc_id = aws_vpc.custom_vpc.id\n"+
 			" cidr_block = \""+f.Buildsubnet[count].CidrBlock+"\"\n"+
@@ -215,16 +213,37 @@ func main(){
 			" subnet_id = aws_subnet.custom_publicsubnet_"+strconv.Itoa(count)+".id \n"+
 			" route_table_id = aws_route_table.custom_publicroute_"+strconv.Itoa(count)+".id \n}\n"
 			
-			pwd,_ := os.Getwd()
-			fil,err := os.OpenFile(pwd+"/"+f.Projectname+"/"+f.Projectname+"_main.tf", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0755)
+
+			pwd3,_ := os.Getwd()
+			fil3,err := os.OpenFile(pwd3+"/"+f.Projectname+"/"+f.Projectname+"_subnet.tf", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0755)
 			check_err(err)
-			if _, err := fil.Write([]byte(maintf)); err != nil {
+			if _, err := fil3.Write([]byte(subnetf)); err != nil {
 				log.Fatal(err)
 			}
-			if err := fil.Close(); err != nil {
+			if err := fil3.Close(); err != nil {
 				log.Fatal(err)
 			}
-			
+             
+            //Build EIP/NAT
+			eipnatf := "#Create EIP\n"+
+			" resource \"aws_eip\" \"awseip\" {\n"+
+			" vpc = true\n}\n"+
+			"#Create NAT\n"+
+			"resource \"aws_nat_gateway\" \"awsnat\" {\n"+
+			" allocation_id = aws_eip.awseip.id\n"+
+			" subnet_id = aws_subnet.custom_publicsubnet_"+strconv.Itoa(count)+".id \n"+
+			" tags = {\n Name = \""+f.Projectname+"_nat\"\n}\n}\n"
+
+			pwdd3,_ := os.Getwd()
+			fill3,err := os.OpenFile(pwdd3+"/"+f.Projectname+"/"+f.Projectname+"_eipnat.tf", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0755)
+			check_err(err)
+			if _, err := fill3.Write([]byte(eipnatf)); err != nil {
+				log.Fatal(err)
+			}
+			if err := fill3.Close(); err != nil {
+				log.Fatal(err)
+			}
+
 		} else {
 
 			//a. create private subnet
@@ -232,7 +251,7 @@ func main(){
 			//c. create route table
 			//d. subnet association with route table
 
-			maintf := "#Configure Private Subnet\n"+
+			subnetf := "#Configure Private Subnet\n"+
 			"resource \"aws_subnet\" \"custom_privatesubnet_"+strconv.Itoa(count)+"\" {\n"+
 			" vpc_id = aws_vpc.custom_vpc.id\n"+
 			" cidr_block = \""+f.Buildsubnet[count].CidrBlock+"\"\n"+
@@ -241,26 +260,87 @@ func main(){
 			"#create Route for private subnet\n"+
 			"resource \"aws_route_table\" \"custom_privateroute_"+strconv.Itoa(count)+"\" {\n"+
 			" vpc_id = aws_vpc.custom_vpc.id\n"+
+			" route {\n cidr_block = \"0.0.0.0/0\"\n nat_gateway_id = aws_nat_gateway.awsnat.id \n}\n"+
 			" tags = {\n Name = \""+f.Projectname+"_privateroute_"+strconv.Itoa(count)+"\"\n}\n}\n"+
 			"#associate private subnet to private route\n"+
 			"resource \"aws_route_table_association\" \"custom_routeprivassociation_"+strconv.Itoa(count)+"\" {\n"+
 			" subnet_id = aws_subnet.custom_privatesubnet_"+strconv.Itoa(count)+".id \n"+
-			" route_table_id = aws_route_table.custom_privateroute_"+strconv.Itoa(count)+".id \n}"
-			
-			pwd,_ := os.Getwd()
-			fil,err := os.OpenFile(pwd+"/"+f.Projectname+"/"+f.Projectname+"_main.tf", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0755)
+			" route_table_id = aws_route_table.custom_privateroute_"+strconv.Itoa(count)+".id \n}\n"
+
+			pwd3,_ := os.Getwd()
+			fil3,err := os.OpenFile(pwd3+"/"+f.Projectname+"/"+f.Projectname+"_subnet.tf", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0755)
 			check_err(err)
-			if _, err := fil.Write([]byte(maintf)); err != nil {
+			if _, err := fil3.Write([]byte(subnetf)); err != nil {
 				log.Fatal(err)
 			}
-			if err := fil.Close(); err != nil {
+			if err := fil3.Close(); err != nil {
 				log.Fatal(err)
-			}
-			fmt.Println("Private it is")
+			}	
+
 		}
 		count += 1
 	}
-	//build security group
-	fmt.Println(f.Securitygroups[0].InboundPorts)
-	
+	//Build Security Groups
+	securitygroups_count := len(f.Securitygroups)
+	scount := 0
+	for scount < securitygroups_count {
+		securitygtf := "#Security Group-"+strconv.Itoa(scount)+"\n"+
+					   "resource \"aws_security_group\" \""+f.Securitygroups[scount].Name+"\" {\n"+
+		               " name =  \""+f.Securitygroups[scount].Name+"\"\n"+
+					   " description = \""+f.Securitygroups[scount].Description+"\"\n"+
+					   " vpc_id = aws_vpc.custom_vpc.id\n"
+
+		pwd4,_ := os.Getwd()
+		fil4,err := os.OpenFile(pwd4+"/"+f.Projectname+"/"+f.Projectname+"_security.tf", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0755)
+		check_err(err)
+		if _, err := fil4.Write([]byte(securitygtf)); err != nil {
+			log.Fatal(err)
+		}
+		if err := fil4.Close(); err != nil {
+		  log.Fatal(err)
+		}
+		//add ingress ports
+		ingressport_count := len(f.Securitygroups[scount].InboundPorts)
+		pcount := 0
+		for pcount < ingressport_count{
+			addingress := " ingress {\n"+
+			              " description = \"allow "+strconv.Itoa(f.Securitygroups[scount].InboundPorts[pcount])+" port\"\n"+
+						  " from_port = "+strconv.Itoa(f.Securitygroups[scount].InboundPorts[pcount])+"\n"+
+						  " to_port = "+strconv.Itoa(f.Securitygroups[scount].InboundPorts[pcount])+"\n"+
+						  " protocol = \"tcp\"\n"+
+						  " cidr_blocks = [\"0.0.0.0/0\"]\n}\n"
+
+			pwdd4,_ := os.Getwd()
+			fill4,err := os.OpenFile(pwdd4+"/"+f.Projectname+"/"+f.Projectname+"_security.tf", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0755)
+			check_err(err)
+			if _, err := fill4.Write([]byte(addingress)); err != nil {
+				log.Fatal(err)
+			}
+			if err := fill4.Close(); err != nil {
+				log.Fatal(err)
+			}
+			pcount += 1
+		}
+		//add end curly-engress
+		curly := " egress {\n"+
+		         " from_port = 0\n"+
+				 " to_port = 0\n"+
+				 " protocol = \"-1\"\n"+
+				 " cidr_blocks = [\"0.0.0.0/0\"]\n}\n"+ 
+		         " tags = {\n"+
+		         "  Name = \""+f.Securitygroups[scount].Name+"\"\n}\n}\n"
+		
+		pwdd5,_ := os.Getwd()
+		fill5,err := os.OpenFile(pwdd5+"/"+f.Projectname+"/"+f.Projectname+"_security.tf", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0755)
+		check_err(err)
+		if _, err := fill5.Write([]byte(curly)); err != nil {
+			log.Fatal(err)
+		}
+		if err := fill5.Close(); err != nil {
+			log.Fatal(err)
+		}
+		
+		scount += 1
+
+	}	
 }	
