@@ -1,8 +1,8 @@
 projectname: "myproject"
 awskey:
   region: "us-east-1"
-  access_key: "AKIAVDVYQWW64QYGGLWS"
-  secret_key: "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"
+  access_key: "xxxxxxxxxxxxxxxxxxxx"
+  secret_key: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 buildvpc:
   name: "myfirstvpc"
   cidr_block: "10.0.0.0/16"

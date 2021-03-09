@@ -342,5 +342,45 @@ func main(){
 		
 		scount += 1
 
+	}
+	//Build Ec2 Instances
+	buildec2_count := len(f.Buildec2Instances)
+	ec2count := 0
+	for ec2count < buildec2_count {
+		if f.Buildec2Instances[ec2count].Type == "public" {
+			//create ec2 instance in public subnet
+			ec2publictf := "#Create EC2 instance in Public Subnet\n"+
+			"resource \"aws_instance\" \""+f.Projectname+"_publicec2_"+strconv.Itoa(ec2count)+"\" {\n"+
+			" ami = \""+f.Buildec2Instances[ec2count].Ami+"\"\n"+
+			" instance_type = \""+f.Buildec2Instances[ec2count].Instancetype+"\"\n"+
+			" subnet_id = aws_subnet.custom_publicsubnet_"+strconv.Itoa(ec2count)+".id\n"+
+			" availability_zone = \""+f.Buildsubnet[ec2count].AvailabilityZone+"\"\n"+
+			" associate_public_ip_address = true\n"
+
+			pwd6,_ := os.Getwd()
+			fil6,err := os.OpenFile(pwd6+"/"+f.Projectname+"/"+f.Projectname+"_ec2instances.tf", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0755)
+			check_err(err)
+			if _, err := fil6.Write([]byte(ec2publictf)); err != nil {
+				log.Fatal(err)
+			}
+			if err := fil6.Close(); err != nil {
+				log.Fatal(err)
+			}
+			//add security group
+			security_len := len(f.Securitygroups)
+			sgcount := 0
+			var sgtf string
+			sgtf =" security_groups = [aws_security_group."
+			for sgcount < security_len {
+				sgtf =" security_groups = [aws_security_group."+f.Securitygroups[sgcount].Name+"]\n"
+				sgcount += 1
+			}
+			fmt.Println(sgtf)
+			
+		} else {
+			//create ec2 instance in private subnet
+			
+		}
+		ec2count += 1
 	}	
 }	
