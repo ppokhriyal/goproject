@@ -357,8 +357,7 @@ func main(){
 			" instance_type = \""+f.Buildec2Instances[ec2count].Instancetype+"\"\n"+
 			" subnet_id = aws_subnet.custom_publicsubnet_"+strconv.Itoa(ec2count)+".id\n"+
 			" availability_zone = \""+f.Buildsubnet[ec2count].AvailabilityZone+"\"\n"+
-			" associate_public_ip_address = true\n"+
-			" volume_size = "+f.Buildec2Instances[ec2count].Hddsize+"\n"
+			" associate_public_ip_address = true\n"
 
 			pwd6,_ := os.Getwd()
 			fil6,err := os.OpenFile(pwd6+"/"+f.Projectname+"/"+f.Projectname+"_ec2instances.tf", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0755)
@@ -381,6 +380,7 @@ func main(){
 			csg := sg.String()
 			psg := strings.TrimSuffix(csg,",")
 			sgtf := " security_groups = ["+psg+"]\n"+
+			        " key_name = \""+f.Buildec2Instances[ec2count].Key+"\"\n"+
 			        " tags = {\n Name = \""+f.Projectname+"_publicec2_"+strconv.Itoa(ec2count)+"\"\n}\n}\n"
 
 			pwdd6,_ := os.Getwd()
@@ -400,8 +400,7 @@ func main(){
 			" ami = \""+f.Buildec2Instances[ec2count].Ami+"\"\n"+
 			" instance_type = \""+f.Buildec2Instances[ec2count].Instancetype+"\"\n"+
 			" subnet_id = aws_subnet.custom_privatesubnet_"+strconv.Itoa(ec2count)+".id\n"+
-			" availability_zone = \""+f.Buildsubnet[ec2count].AvailabilityZone+"\"\n"+
-			" volume_size = "+f.Buildec2Instances[ec2count].Hddsize+"\n"
+			" availability_zone = \""+f.Buildsubnet[ec2count].AvailabilityZone+"\"\n"
 
 			pwd6,_ := os.Getwd()
 			fil6,err := os.OpenFile(pwd6+"/"+f.Projectname+"/"+f.Projectname+"_ec2instances.tf", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0755)

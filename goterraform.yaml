@@ -24,26 +24,16 @@ securitygroups:
   - name: "sg2"
     description: "this is second sg"
     inbound_ports: [22,80]
-buildkeypair:
-  - type: "new"
-    name: "mynewkey"
-    publickey: "/absolute/path"
-  - type: "default"
-    name: "existing_key_name"
 buildec2instances:
   - type: "public"
     name: "ec2inpublic"
     instancetype: "t2.micro"
-    ami: "xxx"
+    ami: "ami-042e8287309f5df03"
     security: ["sg1","sg2"]
-    key : "new/default"
-    hddsize: "40"
+    key : "super"
   - type: "private"
     name: "ec2private"
     instancetype: "t2.micro"
-    ami: "yyy"
+    ami: "ami-042e8287309f5df03"
     security: ["sg2"]
-    key: "none"
-    hddsize: "40"
-    
 
