@@ -7,6 +7,7 @@ import (
 	"os"
 	"gopkg.in/yaml.v2"
 	"strconv"
+	"strings"
 )
 
 //validate selected region
@@ -343,6 +344,7 @@ func main(){
 		scount += 1
 
 	}
+	//Build KeyPair
 	//Build Ec2 Instances
 	buildec2_count := len(f.Buildec2Instances)
 	ec2count := 0
@@ -355,7 +357,8 @@ func main(){
 			" instance_type = \""+f.Buildec2Instances[ec2count].Instancetype+"\"\n"+
 			" subnet_id = aws_subnet.custom_publicsubnet_"+strconv.Itoa(ec2count)+".id\n"+
 			" availability_zone = \""+f.Buildsubnet[ec2count].AvailabilityZone+"\"\n"+
-			" associate_public_ip_address = true\n"
+			" associate_public_ip_address = true\n"+
+			" volume_size = "+f.Buildec2Instances[ec2count].Hddsize+"\n"
 
 			pwd6,_ := os.Getwd()
 			fil6,err := os.OpenFile(pwd6+"/"+f.Projectname+"/"+f.Projectname+"_ec2instances.tf", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0755)
@@ -369,16 +372,69 @@ func main(){
 			//add security group
 			security_len := len(f.Securitygroups)
 			sgcount := 0
-			var sgtf string
-			sgtf =" security_groups = [aws_security_group."
+			var sg strings.Builder
+
 			for sgcount < security_len {
-				sgtf =" security_groups = [aws_security_group."+f.Securitygroups[sgcount].Name+"]\n"
+				sg.WriteString("aws_security_group."+f.Securitygroups[sgcount].Name+".id,")
 				sgcount += 1
 			}
-			fmt.Println(sgtf)
+			csg := sg.String()
+			psg := strings.TrimSuffix(csg,",")
+			sgtf := " security_groups = ["+psg+"]\n"+
+			        " tags = {\n Name = \""+f.Projectname+"_publicec2_"+strconv.Itoa(ec2count)+"\"\n}\n}\n"
+
+			pwdd6,_ := os.Getwd()
+			fill6,err := os.OpenFile(pwdd6+"/"+f.Projectname+"/"+f.Projectname+"_ec2instances.tf", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0755)
+			check_err(err)
+			if _, err := fill6.Write([]byte(sgtf)); err != nil {
+				log.Fatal(err)
+			}
+			if err := fill6.Close(); err != nil {
+				log.Fatal(err)
+			}		
 			
 		} else {
 			//create ec2 instance in private subnet
+			ec2privatetf := "#Create EC2 instance in Private Subnet\n"+
+			"resource \"aws_instance\" \""+f.Projectname+"_privatec2_"+strconv.Itoa(ec2count)+"\" {\n"+
+			" ami = \""+f.Buildec2Instances[ec2count].Ami+"\"\n"+
+			" instance_type = \""+f.Buildec2Instances[ec2count].Instancetype+"\"\n"+
+			" subnet_id = aws_subnet.custom_privatesubnet_"+strconv.Itoa(ec2count)+".id\n"+
+			" availability_zone = \""+f.Buildsubnet[ec2count].AvailabilityZone+"\"\n"+
+			" volume_size = "+f.Buildec2Instances[ec2count].Hddsize+"\n"
+
+			pwd6,_ := os.Getwd()
+			fil6,err := os.OpenFile(pwd6+"/"+f.Projectname+"/"+f.Projectname+"_ec2instances.tf", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0755)
+			check_err(err)
+			if _, err := fil6.Write([]byte(ec2privatetf)); err != nil {
+				log.Fatal(err)
+			}
+			if err := fil6.Close(); err != nil {
+				log.Fatal(err)
+			}
+			//add security group
+			security_len := len(f.Securitygroups)
+			sgcount := 0
+			var sg strings.Builder
+
+			for sgcount < security_len {
+				sg.WriteString("aws_security_group."+f.Securitygroups[sgcount].Name+".id,")
+				sgcount += 1
+			}
+			csg := sg.String()
+			psg := strings.TrimSuffix(csg,",")
+			sgtf := " security_groups = ["+psg+"]\n"+
+					" tags = {\n Name = \""+f.Projectname+"_privatec2_"+strconv.Itoa(ec2count)+"\"\n}\n}\n"
+
+			pwdd6,_ := os.Getwd()
+			fill6,err := os.OpenFile(pwdd6+"/"+f.Projectname+"/"+f.Projectname+"_ec2instances.tf", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0755)
+			check_err(err)
+			if _, err := fill6.Write([]byte(sgtf)); err != nil {
+				log.Fatal(err)
+			}
+			if err := fill6.Close(); err != nil {
+				log.Fatal(err)
+			}
 			
 		}
 		ec2count += 1
